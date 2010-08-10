@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+<h3>Upload Queued For Processing</h3>
+
+<p>Your upload has been queued for processing. Processing normally takes up to three minutes.</p>
+
+<p>You will receive an email confirmation at {{user.email}} when your upload is complete, or if there are any problems.</p>
+
+<p>&nbsp;</p>
+
+<p>Have another GTFS file to upload? Visit the <a href="/upload">Upload Page</a></p>
+
+{% endblock body %}

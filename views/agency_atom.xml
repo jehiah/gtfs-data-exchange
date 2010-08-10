@@ -1,0 +1,6 @@
+{% extends "atom.xml" %}
+
+{%block title %}GTFS Data Exchange - {% if agency %}{{agency.name}}{% else %}{{u}}{% endif %} {% endblock title %}
+{%block feedurl %}{{baseurl}}/{{userOrAgency}}/{{id}}/feed{% endblock feedurl %}
+{% block alternateurl %}{{baseurl}}/{{userOrAgency}}/{{id}}/{% endblock alternateurl %}
+{%block extrahead %}{% if agency.description %}<subtitle>{{agency.description}}</subtitle>{% endif %}{% endblock extrahead %}

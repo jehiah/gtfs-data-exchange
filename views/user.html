@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}User Profile - {{u.nickname}}{% endblock title %}
+
+
+{% block rightsidebar %}
+<div id="rightsidebar">
+	<p><strong><img src="/static/feed.png"> <a href="/user/{{u.nickname}}/feed">Subscribe to Updates</a></strong><br/>
+	Stay informed when {{u.nickname}} uploads new GTFS feeds, or posts comments. Subscribe to updates today.</p>
+</div>
+
+{% endblock %}
+{% block feedurl %}/user/{{u.nickname}}/feed{% endblock feedurl %}
+
+{% block body %}
+
+<h2>Comments and Uploads by {{u.nickname}}</h2>
+
+<br clear="right"/>
+{% ifnotequal paginator.pages 1 %}
+<div class="pagination">
+    <span class="page-links">
+        {% if previous %}
+            <a href="?page={{ previous_page_number }}">&laquo; previous</a>
+        {% endif %}
+        <span class="current">
+             Page {{ page }} of {{ paginator.pages }}
+        </span>
+        {% if next %}
+            <a href="?page={{ next_page_number }}">next &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endifnotequal %}
+
+{% for msg in messages %}
+
+<div class="message">
+<p class="meta"><a href="/meta/{{msg.key}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% endif %} By {{msg.user}}  <small>on {{msg.date|date:"D F dS Y H:i"}} Z</small>
+		<br/>pertains to
+		{% for a in msg.agencies %}
+			<a href="{{a.link}}">{{a.name}}</a>
+		{% endfor %} 
+	</p>
+<div class="content">{{msg.content|markdown}}</div>
+{% if msg.hasFile %}
+<p><a href="{{msg|gtfsurl}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{msg.size|filesizeformat}}</span>{% endif %} <a href="/meta/{{msg.key}}" title="permalink">more info &raquo;</a></p>
+{% endif %}
+</div>
+
+{% endfor %}
+
+{% ifnotequal paginator.pages 1 %}
+<div class="pagination">
+    <span class="page-links">
+        {% if previous %}
+            <a href="?page={{ previous_page_number }}">&laquo; previous</a>
+        {% endif %}
+        <span class="current">
+             Page {{ page }} of {{ paginator.pages }}
+        </span>
+        {% if next %}
+            <a href="?page={{ next_page_number }}">next &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endifnotequal %}
+
+
+{% endblock %}

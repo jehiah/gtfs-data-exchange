@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head >
+    <title>{% block title %}GTFS Data Exchange{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css" type="text/css" media="all" />
+	<link rel="alternate" type="application/rss+xml" title="Atom" href="{% block feedurl %}/feed{% endblock feedurl %}" />
+</head>
+<body>
+
+<div id="container">
+<div id="dashboard">
+        <!--- <a href="/feed" title="Subscribe to {{ blog.title }} RSS feed">Subscribe to the feed <img src="/static/images/feed-icon-16x16.png" width="16" height="16" border="0" title="Subscribe to Blog's RSS feed" alt="RSS"/></a> --->
+</div>
+
+<div id="header">
+    <h1><a href="/" ><img src="/static/logo.png" alt="GTFS Data Exchange"></a></h1>
+</div>
+<div id="nav">
+    <div id="usernav">
+    <a href="/upload" >Upload GTFS File</a> <span class="pipe">|</span>
+    <a href="{{url}}" >{{url_linktext}}</a> 
+    </div>
+    <a href="/agencies">All Agencies</a> <span class="pipe">|</span>
+    <a href="/">Recent Updates</a> 
+</div>
+
+<div id="body">
+{% block featured %}{% endblock %}
+{% block topmenu %}{% endblock %}
+{% block rightsidebar %}
+{% endblock %}
+{% block body %}{% endblock body %} 
+<div class="clear"></div>
+
+</div>
+<div id="footer">
+	<h3>Resources</h3>
+	<ul>
+		<li><a href="http://code.google.com/transit/spec/transit_feed_specification.html">GTFS Specification</a></li>
+		<li><a href="/how-to-provide-open-data">How to Provide Open Data</a></li>
+		<li><a href="http://groups.google.com/group/transit-developers">Transit Developers Discussion Group</a></li>
+		<li><a href="http://groups.google.com/group/gtfs-changes">GTFS Specification Discussion Group</a></li>
+		<li><a href="http://groups.google.com/group/gtfs-changes/web/open-proposals">Proposed GTFS Specification Changes</a></li>
+		<li><a href="http://code.google.com/p/googletransitdatafeed/wiki/FeedValidator">GTFS Feed Validator</a></li>
+	</ul>
+
+    <h3>About GTFS Data Exchange</h3>
+
+    <p>This site is designed to help developers and transit agencies efficiently share and retrieve GTFS data. GTFS-data-exchange helps eliminate the time between feed publication by a transit agency and when the developer is alerted to it's presence. This is accomplished by per-agency RSS feeds that developers and other GTFS consumers subscribe to.</p>
+	
+	<p>This Site has been designed by <a href="http://jehiah.cz/">Jehiah Czebotar</a> along with feedback from the GTFS community.<br/>
+    For updates about this site, follow <a href="http://twitter.com/gtfs_data">@gtfs_data</a>.</p>
+
+	<p>Data posted on this site is provided AS IS. No guarantee of correctness or suitability for any purpose is implied. </p>
+</div>
+</div>
+
+{% if production %}
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-75594-6");
+pageTracker._trackPageview();
+</script>
+{% endif %}
+
+{% block footer_javascript %}{% endblock %}
+
+
+<script type="text/javascript">
+var uservoiceJsHost = ("https:" == document.location.protocol) ? "https://uservoice.com" : "http://cdn.uservoice.com";
+document.write(unescape("%3Cscript src='" + uservoiceJsHost + "/javascripts/widgets/tab.js' type='text/javascript'%3E%3C/script%3E"))
+</script>
+<script type="text/javascript">
+UserVoice.Tab.show({ 
+  key: 'gtfsdataexchange',
+  host: 'gtfsdataexchange.uservoice.com', 
+  forum: 'general', 
+  alignment: 'left', /* 'left', 'right' */
+  background_color:'#00A128', 
+  text_color: 'white', /* 'white', 'black' */
+  hover_color: '#666',
+  lang: 'en' /* 'en', 'de', 'nl', 'es', 'fr' */
+})
+</script>
+
+
+</body>
+</html>

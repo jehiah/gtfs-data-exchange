@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block footer_javascript %} 
+<script src="/static/showdown.js" language="javascript"></script>
+<script src="/static/showdown-gui.js" language="javascript"></script>
+<script>
+inputPane = document.getElementById("comments");
+</script>
+
+{% endblock footer_javascript %}
+{% block title %}GTFS Data Exchange - {{agency.name}}{% endblock title %}
+
+{% block feedurl %}/agency/{{agency.slug}}/feed{% endblock feedurl %}
+{% block body %}
+
+<h2>
+    {% if agency.is_official %}
+    <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available"  align="absbottom" vspace="3">
+    {% else %}
+    <img src="/static/star_grey.png" width="17" height="22" alt="No Offical GTFS Data Source Available" title="No Offical GTFS Data Source Available" align="absbottom" vspace="3">
+    {% endif %}
+    
+    {{agency.name}}</h2>
+
+<p><small>Last updated {{agency.lastupdate|timesince}} ago</small><br/>
+	{% if agency.url %}<a href="{{agency.url}}">{{agency.url}}</a><br/>{% endif %}
+	</p>
+
+{% if agency.location %}
+<p>Location: {{agency.location}}</p>
+{% endif %}
+
+{% if agency.feed_baseurl %}
+<p>Official Feed Source: <a href="{{agency.feed_baseurl}}">{{agency.feed_baseurl}}</p>
+{% endif %}
+
+{% if agency.license_url %}
+<p><a href="{{agency.license_url}}">License Agreement</a></p>
+{% endif %}
+
+	<p>
+	    <img src="/static/feed.png"> <a href="/agency/{{agency.slug}}/feed">RSS of {{agency.name}} Updates</a><br/>
+        Download the <a href="/agency/{{agency.slug}}/latest.zip">Latest GTFS File </a> <small><em>({{messages.0.message.filename}}) posted on {{messages.0.message.date|date:"D f dS"}}</em></small> 
+	</p>
+
+{% if current_userisadmin %}
+    <p><a href="/agency/{{agency.slug}}/edit"><img src="/static/pencil.png"> Edit</a></p> 
+{% endif %}
+
+{{agency.display_description}}
+
+<br clear="right"/>
+{% for msg in messages %}
+<div class="message">
+<p class="meta"><a href="/meta/{{msg.message.key.id}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% endif %} By <a href="/user/{{msg.message.user}}/">{{msg.message.user}}</a>  <small>on {{msg.message.date|date:"D F dS Y H:i"}} Z</small>
+	{% ifnotequal msg.message.agencies.__len__ 1 %}
+		<br/>also pertains to 
+		{% for a in msg.message.agencies %}
+			{% ifnotequal agency.slug a.slug %}<a href="{{a.link}}">{{a.name}}</a>{% endifnotequal %} 
+		{% endfor %} 
+	{% endifnotequal %}
+	</p>
+<div class="content">{{msg.message.content|markdown}}</div>
+{% if msg.hasFile %}
+<p><a href="{{msg.message|gtfsurl}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.message.filename}}</a> {% if msg.message.size %}<span class="filesize">{{msg.message.size|filesizeformat}}</span>{% endif %} <a href="/meta/{{msg.message.key.id}}" title="permalink">more info &raquo;</a></p>
+{% endif %}
+</div>
+
+{% endfor %}
+
+
+{% comment %}
+{% if user %}
+<p>&nbsp;</p>
+<fieldset>
+    <p>Have an updated, or slightly modified GTFS file for {{agency.name}}? <a href="/upload">Upload It</a>, and it will automatically be linked to this page.</p>
+    <p>Notice a schedule update, or a problem with an existing GTFS file for {{agency.name}}? mention it here so other developers can benifit.</p>
+    <form method="post" action="{{agency.link}}">
+    <textarea id="comments" name="comments" style="height:5em;width:100%;" onclick="this.style.height='15em';" onfocus="this.style.height='15em';"></textarea><br/>
+    <input type="submit" name="action.savecomments" value="Post Comments">
+    </form>
+    
+    <div id="previewblock" style="display:none;">
+    <h3>Comment Preview: (use <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown syntax</a> for text formatting)</h3>
+    <div id="previewPane" class="pane"><noscript><strong>You'll need to enable Javascript to see a preview.</strong></noscript></div>
+    </div>
+    
+</fieldset>
+{% else %}
+<p><a href="{{url}}">{{url_linktext}}</a> to Add a comment about new {{agency.name}} schedule data, or to upload a GTFS file</p>
+{% endif %}
+{% endcomment %}
+
+{% endblock %}

@@ -1,0 +1,32 @@
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>{% block title %}GTFS Data Exchange{% endblock title %}</title>
+    <id>{{baseurl}}/feed</id>
+    <link href="{% block feedurl %}{{baseurl}}/feed{% endblock feedurl %}" type="application/atom+xml" rel="self" />
+    <link href="{% block alternateurl %}{{baseurl}}/{% endblock alternateurl %}" type="text/html" rel="alternative" />
+	{% for msg in messages %}
+    {%if forloop.first %}<updated>{{msg.rfc3339}}</updated>{% endif %}
+	{% endfor %}
+  {%block extrahead %}{% endblock extrahead %}
+{% for msg in messages %}
+  <entry>
+	<link rel="alternate" href="{{baseurl}}/meta/{{msg.key.id}}" type="text/html"/>
+	<author>
+	  <name>{{msg.user}}</name>
+	</author>
+      <id>{{baseurl}}/meta/{{msg.key.id}}</id>
+      <title type="text">{% if msg.hasFile %}Upload{%else%}Comment{%endif%} : {% for a in msg.agencies %}{{a.name}}{% if not forloop.last %},{% endif %} {% endfor %}by {{msg.user}}</title>
+      <content type="html"><![CDATA[ 
+{{msg.content|markdown}}
+
+{% if msg.hasFile %}
+<p><a href="{{baseurl}}{{msg|gtfsurl}}">{{baseurl}}{{msg|gtfsurl}}</a> {% if msg.size %}<span class="filesize">{{msg.size|filesizeformat}}</span>{% endif %}</p>
+{{msg.validation_results}}
+{% endif %}	
+]]></content>
+	  {% if msg.hasFile %}<link rel="enclosure" type="application/zip" title="{{msg.filename}}" href="{{baseurl}}{{msg|gtfsurl}}" {% if msg.size %}length="{{msg.size}}"{% endif %} />{% endif %}
+      <updated>{{msg.rfc3339}}</updated>
+      <published>{{msg.rfc3339}}</published>
+	
+  </entry>
+{% endfor %}
+</feed>

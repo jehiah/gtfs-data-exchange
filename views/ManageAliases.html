@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block rightsidebar %}
+{% endblock %}
+
+
+{% block body %}
+<h3>Manage Agency Aliases</h3>
+<p>Use this page to merge two agency names</p>
+
+{% if error %}
+<div class="error">{{error}}</div>
+{% endif %}
+
+<fieldset>
+	<form action="/manage/" method="post">
+		<label>Merge From:<br/>
+		<select name="from_agency" id="from_agency">
+			<option value="">Select One ...</option>
+			{% for agency in agencies %}
+				<option value="{{agency.key}}">{{agency.name}}</option>
+			{% endfor %}
+		</select>
+		</label>
+		<br/>
+		
+		<label>Merge To:<br/>
+		<select name="to_agency" id="to_agency">
+			<option value="">Select One ...</option>
+			{% for agency in agencies %}
+				<option value="{{agency.key}}">{{agency.name}}</option>
+			{% endfor %}
+		</select>
+		</label><br/>
+		
+		<label>Or rename the 'To' agency to...</label><br/>
+		name:<input type="text" name="to_name" size="25"><br/>
+		slug:<input type="text" name="to_slug" size="25"><br/>
+		<br/>
+		
+		<p><strong>Note:</strong> The 'from' agency will be removed, and the 'to' agency will stay.</p>
+		
+		<input type="submit" name="action.merge" value="Merge Agencies">
+	</form>
+</fieldset>
+
+
+{% endblock body %}

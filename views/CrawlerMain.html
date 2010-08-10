@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+	<head>
+		<title>Crawler Main Page</title>
+	</head>
+	<body>
+		<h1>Crawler Main Page</h1>
+		
+{% if crawlurls %}
+<ul>
+{% for u in crawlurls %}
+<li>{{u.url}} - <small>last crawled {{u.lastcrawled|timesince}} ago</small><br/>
+	<form action="/crawl" method="post">
+		<input type="hidden" name="orig_url" value="{{u.url}}">
+			<fieldset>
+				<label>URL:<input type="text" name="url" size="100" value="{{u.url}}"/></label><br/>
+				<label>Recurse:<input type="text" name="recurse" size="5"value="{{u.recurse}}"></label><br/>
+				<label>download as:<input type="text" name="download_as" size="15"value="{{u.download_as}}"></label><br/>
+				<label>show url:<input type="checkbox" name="show_url" value="True" {% if u.show_url %} checked {% endif %}></label><br/>
+				<label>post text:<input type="text" name="post_text" value="{{u.post_text}}" size="100"></label><br/>
+				<input type="submit" name="action.save" value="save"><br/>
+		</fieldset>
+	</form>
+	
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+<form action="/crawl" method="post">
+		<fieldset>
+			<legend>Add URL To Crawl</legend>
+			<label>URL:<br/><input type="text" name="url" size="100"/></label><br/>
+			<label>Recurse:<br/><input type="text" name="recurse" size="5"value="1"></label><br/>
+			<label>download as:<br/><input type="text" name="download_as" size="15"value="gtfs-archiver"></label><br/>
+			<label>show url:<br/><input type="checkbox" name="show_url" value="True"></label><br/>
+			<label>post text:<br/><input type="text" name="post_text" value="" size="100"></label><br/>
+			<input type="submit" name="action.add" value="Add"><br/>
+			
+	</fieldset>
+</form>
+
+</body>
+</html>

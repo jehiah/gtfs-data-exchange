@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Feed URL to GTFS Data Exchange{% endblock title %}
+
+{% block body %}
+
+<h2>Submit Feed URL to GTFS Data Exchange</h2>
+
+<p>Use this form to submit an Open GTFS Schedule Feed for inclusion on GTFS Data Exchange. This helps developers find the URL where your data is published. The URL submitted will be checked daily and any feed updates will be listed on GTFS Data Exchange.</p>
+
+<p><strong>Note</strong>: It is also important to send an email to <a href="http://groups.google.com/group/transit-developers">transit-developers@googlegroups.com</a> with the URL of your feed to ensure developers are aware of it.</p>
+
+<p><strong>Note</strong>: if you do not have a website to host GTFS schedule data on, you may <a href="/upload">Upload GTFS Files</a> directly to GTFS Data Exchange</p>
+
+<form action="/submit-feed" method="post">
+
+<fieldset>
+    <label><span>Feed Location</span><span class="req">*</span>:<br/>
+        <input type="text" name="feed_location" value="" size="100"></label><br/>
+    <label><span>Transit Agency Name</span>:<br/>
+        <input type="text" name="agency_name" value="" size="100"></label><br/>
+    <label><span>Transit Agency Location</span>: <em>(Country, State, City)</em><br/>
+        <input type="text" name="agency_location" value="" size="100"></label><br/>
+    <label><span>Point of Contact</span>:<br/>
+        <input type="text" name="contact_info" value="" size="100"></label><br/>
+    <button type="submit" name="action.send">Submit</button><br/>
+</fieldset>
+</form>
+
+<p>Need more info? Find more information about <a href="/how-to-provide-open-data">providing open data</a></p>
+
+{% endblock %}

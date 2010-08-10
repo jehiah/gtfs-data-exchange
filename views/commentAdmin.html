@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block footer_javascript %} 
+<script src="/static/showdown.js" language="javascript"></script>
+<script src="/static/showdown-gui.js" language="javascript"></script>
+{% endblock footer_javascript %} 
+
+{% block body %}
+<h3>{% if msg.hasFile %}Upload{% else %} Comment {% endif %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a></h3>
+
+<div class="message">
+<p class="meta">  <small>Posted on {{msg.date|date:"D F dS Y H:i"}}</small>
+		<br/>
+		{% for a in msg.agencies %}
+			<a href="{{a.link}}">{{a.name}}</a>
+		{% endfor %} 
+	</p>
+<div class="content">{{msg.content|markdown}}</div>
+{% if msg.hasFile %}
+<p><a href="{{msg|gtfsurl}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{msg.size|filesizeformat}}</span>{% endif %} <br/>
+MD5: {{msg.md5sum}}<br/>
+	</p>
+{{msg.validation_results}}
+{% endif %}
+</div>
+
+
+<form action="" method="POST">
+	<fieldset>
+		<textarea id="comments" name="comments" style="height:5em;width:100%;" onclick="this.style.height='15em';" onfocus="this.style.height='15em';">{{msg.content}}</textarea><br/>
+		<input type="submit" name="action.savecomments" value="Post Comments">
+		</form>
+
+		<div id="previewblock" style="display:none;">
+		<h3>Comment Preview: (use <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown syntax</a> for text formatting)</h3>
+		<div id="previewPane" class="pane"><noscript><strong>You'll need to enable Javascript to see a preview.</strong></noscript></div>
+		</div>
+
+	</fieldset>
+</form>
+
+
+{% endblock body %}

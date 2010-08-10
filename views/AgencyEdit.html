@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block rightsidebar %}
+{% endblock %}
+
+
+{% block body %}
+<h3>Edit '{{agency.name}}'</h3>
+<p>Use this page to update agency information</p>
+
+{% if error %}
+<div class="error">{{error}}</div>
+{% endif %}
+
+<fieldset>
+	<form action="/agency/{{agency.slug}}/edit" method="post">
+		<label>URL:<br/>
+		<input type="text" size="100" name="url" value="{{agency.url|default:""}}"></label><br/>
+		<label>Country:<br/>
+		<input type="text" size="50" name="country" value="{{agency.country_name|default:""}}"></label><br/>
+		<label>State:<br/>
+		<input type="text" size="50" name="state" value="{{agency.state_name|default:""}}"></label><br/>
+		<label>Area:<br/>
+		<input type="text" size="50" name="area" value="{{agency.area_name|default:""}}"></label><br/>
+		<label>Feed Location Url:<br/>
+		<input type="text" size="100" name="feed" value="{{agency.feed_baseurl|default:""}}"></label><br/>
+		<label>License Agreement Url:<br/>
+		<input type="text" size="100" name="license" value="{{agency.license_url|default:""}}"></label><br/>
+		<label>Description (markdown):<br/>
+		<textarea name="description" style="width:700px;height:300px;">{{agency.description|default:""}}</textarea>	
+		</label><br/>
+        
+        Official Data: 
+            <label><input type="radio" name="official" value="1" {% if agency.is_official %}checked{% endif %}>Available</label>
+            <label><input type="radio" name="official" value="0" {% if not agency.is_official %}checked{% endif %}>Not Available</label><br/>
+
+		<input type="submit" name="action.save" value="Save">
+	</form>
+</fieldset>
+
+
+{% endblock body %}

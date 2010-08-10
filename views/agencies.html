@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Transit Agencies Providing GTFS Data{% endblock title %}
+
+{% block footer_javascript %}
+
+<script src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
+google.load("jquery","1.3.2");
+</script>
+<script type="text/javascript">
+function filter_out(el, style){
+    // unfilter
+    $('.filtered').css('display','').removeClass('filtered');
+    // change selected link
+    $("#filters .selected").removeClass('selected');
+    el.addClass('selected');
+    if (style){
+        // filter
+        $('.' + style).css('display','none').addClass('filtered');
+    }
+}
+$(document).ready(function(){
+    $("#filter_all").bind("click", function(){filter_out($(this))});
+    $("#filter_official").bind("click", function(){filter_out($(this), 'unofficial')});
+
+    if (document.location.hash == '#filter_official') {
+        $("#filter_official").click();
+    }
+});
+</script>
+
+{% endblock %}
+
+{% block body %}
+
+<h2>Transit Agencies Providing GTFS Data</h2>
+
+<p>View: <a href="/agencies" class="selected">by Agency</a> <span class="pipe">|</span> 
+    <a href="/agencies/bylocation">by Location</a> <span class="pipe">|</span> 
+    <a href="/agencies/bylastupdate">by Last Update</a> <span class="pipe">|</span>
+    <a href="/agencies/astable">as Table</a>
+</p>
+
+<p id="filters">Filter: <a href="#filter_all" id="filter_all" class="selected" >All Sources</a> <span class="pipe">|</span> <a href="#filter_official" id="filter_official">Official Sources</a></p>
+    
+<p>Data is Available for {{agency_count}} Transit Agencies.</p>
+
+<p> <a href="/feed"><img src="/static/feed.png" border="0" align="absbottom"> RSS of All Updates</a></p>
+
+<hr>
+    
+{% for data in grouped_agencies %}
+<h4>{{data.0}}</h4>
+<ol class="agency_list">
+    {% for agency in data.1 %}
+    <li class="{% if not agency.is_official %}un{% endif %}official">
+        {% if agency.is_official %}
+        <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available" align="absbottom">
+        {% else %}
+        <img src="/static/star_grey.png" width="17" height="22" alt="No Offical GTFS Data Source Available" title="No Offical GTFS Data Source Available" align="absbottom">
+        {% endif %}
+        
+        <a href="{{agency.link}}"><strong>{{agency.name}}</strong></a> 
+        {% if agency.isnew %}<span class="new">New!</span>{% endif %}
+        {% if agency.recent %}<small>Last updated {{agency.lastupdate|timesince}} ago</small>{% endif %}
+    </li>
+    {% endfor %}
+</ol>
+{% endfor %}
+
+<hr>
+{% include "include_official_flags_key.html" %}
+<hr>
+{% include "include_how_to_provide_open_data.html" %}
+
+{% endblock %}

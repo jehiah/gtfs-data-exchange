@@ -1,0 +1,90 @@
+html,body{border:0;margin:0;padding:0;background-color:#777;font-family:Helvetica;}
+a img{border:0;}
+a:link,a:visited{color:#006619;text-decoration:underline;}
+
+#container{width:800px;margin:0 auto 10px auto;background-color:#c0c0c0;border:0px solid #666;border-width:0px 3px 3px 2px;}
+#header{text-align:center;margin:0 0 0 0;padding-bottom:20px;border-bottom:10px solid #fff;}
+#header h1{margin:0;}
+#dashboard a{padding:2px 3px;}
+#body{padding:10px 15px;border-top:10px solid #fff;min-height:400px;color:#333;}
+#rightsidebar{float:right;width:150px;padding:10px;border:10px solid #fff;background-color:#00a128;color:#eee;text-align:justify;margin-left:10px;}
+#rightsidebar a:link,#rightsidebar a:visited{color:#fff;}
+#rightsidebar p{margin:0;padding:0;font-size:8pt;}
+#rightsidebar strong{font-size:9pt;}
+
+#nav {padding:10px 15px;height:20px;background-color:#00a128;color:#f0f0f0;font-size:12pt;line-height:20px;font-family:Helvetica;}
+#nav a:link,#nav a:visited{color:#fff;}
+#usernav{float:right;width:300px;text-align:right;height:20px;}
+.pipe{color:#a0a0a0;font-size:10pt;padding:0 5px;}
+
+#footer{border-top:10px solid #fff;background-color:#00a128;color:#eee;padding:10px 10px 20px 10px;}
+#footer a:link,#footer a:visited{color:#fff;}
+li,p,td,th {line-height:1.5;font-size:9pt;}
+td,th{font-size:8pt;}
+.clear{clear:both;}
+ul{padding:0 0 0 1em;margin:0;}
+h1,h2,h3,h4{font-family:Helvetica;}
+h4.country{font-size:11pt;margin:0;}
+#body h2, #body h3{margin-bottom:0;padding-bottom:0;}
+h2 + p, h3 + p{margin-top:.25em;}
+p.agencies a{padding:2px;}
+pre{margin-left:0;padding-left:0;}
+.message{margin:10px 0 10px 0;padding:0 0 1px 10px;}
+/* border-left:10px solid #fff; */
+.message .meta{color:#666;}
+.message{border-top:3px solid #00a128;border-bottom:3px solid #00a128;background-color:#efe;}
+.message .filesize{color:#666;font-size:.9em;}
+.new {color:red;font-size:8pt;vertical-align:super;}
+
+table.datatable, table.datatable td, table.datatable th{border:1px solid #eee;border-collapse:collapse;}
+table.datatable th {padding:1px 4px;}
+table.datatable td {padding:1px 3px;line-height:22px;}
+
+ol.agency_list {padding:0;}
+ol.agency_list li{list-style:none;padding:0;margin-bottom:0;line-height:22px;}
+
+a.permalink{color:#666;text-decoration:none;}
+a.permalink:hover{color:#006619;text-decoration:underline;}
+
+a.selected {color:#000;text-decoration:none;}
+
+div.warning{border:3px solid #f99;border-width:3px 0 3px 0;background-color:#fff;padding:5px;margin:10px 0 10px 0;}
+div.error{border:3px solid red;border-width:3px 0 3px 0;background-color:#fdd;padding:5px;margin:10px 0 10px 0;}
+div.confirm{border:3px solid #33f;border-width:3px 0 3px 0;background-color:#ddf;padding:5px;margin:10px 0 10px 0;}
+div.confirm a{color:#00f;}
+
+#previewblock{padding-right:10px;}
+.pane {
+	margin: 0 0 0 0;
+	padding: 5px;
+	padding-left: 4px; /* pane padding */
+	width: 100%;
+	border: none;
+	background-color: #eee;
+	display: block;
+	border: 1px solid #888;
+	border-right: 1px solid #000;
+	border-bottom: 1px solid #000;
+
+	/* note: the panes get their height set with
+       javascript; see sizeTextAreas(). */
+
+	/* for now, set a height so things look nice
+	   if the user has javascript disabled */
+	height: 400px;
+}
+
+div.pane {
+	overflow: auto;
+}
+#previewPane > :first-child {
+	margin-top: 4px; /* pane padding */
+}
+#previewPane.smaller {height:200px;}
+.validationresults, .validationresults th, .validationresults td{font-size:9pt;}
+.validationresults th{text-align:left;}
+
+.pagination{font-size:9pt;color:#333;}
+
+.req{color:red;}
+fieldset em{font-size:.9em;}

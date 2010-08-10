@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Upload GTFS File{% endblock title %}
+{% block footer_javascript %} 
+<script src="/static/showdown.js" language="javascript"></script>
+<script src="/static/showdown-gui.js" language="javascript"></script>
+
+{% endblock footer_javascript %}
+
+
+{% block rightsidebar %}{% endblock %}
+{% block body %}
+
+<h3>Upload GTFS File</h3>
+<p>Comments and GTFS File will automatically be linked to the agency/agencies listed in agency.txt</p>
+
+<form action="https://gtfs{%if not production %}-devel{%endif %}.s3.amazonaws.com/" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="key" value="queue/{{nextkey}}">
+  <input type="hidden" name="AWSAccessKeyId" value="1TRQ62N38DB2SJ7JZT02"> 
+  <input type="hidden" name="acl" value="private"> 
+  <input type="hidden" name="success_action_redirect" value="{{baseurl}}/queue">
+  <input type="hidden" name="policy" value="{{policy}}">
+  <input type="hidden" name="signature" value="{{signature}}">
+  <input type="hidden" name="Content-Type" value="application/zip">
+<input type="hidden" name="x-amz-meta-user" value="{{user.email}}">
+
+<fieldset>
+Comments: <br/>
+<textarea name="x-amz-meta-comments" id="comments" rows="8" cols="60" style="height:5em;width:100%;" onclick="this.style.height='10em';" onfocus="this.style.height='10em';"></textarea><br/>
+GTFS zip file to upload:<br/>
+<input name="file" type="file" size="50" accept="application/zip"><br />
+<input type="submit" value="Submit Data"> 
+
+<p><strong>Note:</strong> It is a good idea to <a href="http://code.google.com/p/googletransitdatafeed/wiki/FeedValidator">Validate</a> feeds before uploading, but incomplete data is OK. <br/>
+(<a href="http://groups.google.com/group/gtfs-changes/web/open-proposals">Proposed Extensions</a> are OK too, but you should probably note them in the comments and/or in a README in the zip file).<br/>
+Uploads will be queued for processing, and will be published within minutes.<br/>
+<strong>Remember:</strong> Large files may take a long time to upload. Be Patient.<br/>
+</p>
+
+</fieldset>
+</form> 
+
+<div id="previewblock" style="display:none;">
+<h3>Comment Preview: (use <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown syntax</a> for text formatting)</h3>
+<div id="previewPane" class="pane smaller"><noscript><strong>You'll need to enable Javascript to see a preview.</strong></noscript></div>
+</div>
+
+
+{% endblock %}

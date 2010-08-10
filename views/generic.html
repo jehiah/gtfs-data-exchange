@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block rightsidebar %}
+{% endblock %}
+
+
+{% block body %}
+
+
+{% if message %}
+<div class="confirm">{{message}}</div>
+{% endif %}
+
+{% if error %}
+<div class="error">{{error}}</div>
+{% endif %}
+
+
+{% endblock %}
