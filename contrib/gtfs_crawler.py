@@ -44,7 +44,7 @@ class Crawler:
             self.homebase = 'http://www.gtfs-data-exchange.com/'
         else:
             self.bucket = 'gtfs-devel'
-            self.homebase = 'http://localhost:8080/'
+            self.homebase = 'http://localhost:8085/'
 
         auth_handler = urllib2.HTTPBasicAuthHandler()
         auth_handler.add_password(realm='RESTRICTED ACCESS',

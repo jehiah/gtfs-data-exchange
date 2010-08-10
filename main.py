@@ -174,12 +174,16 @@ class BaseAPIPage(webapp2.RequestHandler):
         return self.error(405)
 
     def get(self):
-        self.render(500,"UNKNOWN ERROR")
+        self.api_error(500,"UNKNOWN_ERROR")
 
     def post(self):
-        self.render(405,"POST NOT SUPPORTED")
+        self.api_error(405,"POST_NOT_SUPPORTED")
 
-    def render(self, status_code=200, status_txt="OK", data=None):
+    def api_error(self, status_code, status_txt):
+        self.api_response(None, status_code, status_txt)
+    
+    def api_response(self, data, status_code=200, status_txt="OK"):
+        logging.info('returning %s' % data)
         out_data = {
             'status_code':status_code,
             'status_txt':status_txt,
@@ -187,17 +191,35 @@ class BaseAPIPage(webapp2.RequestHandler):
         }
         callback = self.request.GET.get('callback',None)
         if callback:
-            self.response.headers['Content-type'] = 'applicaiton/jsonp'
+            self.response.headers['Content-type'] = 'application/jsonp'
             self.response.out.write(callback+'(')
             self.response.out.write(json.dumps(out_data))
             self.response.out.write(')')
         else:
-            self.response.headers['Content-type'] = 'application/json'
+            self.response.headers['Content-type'] = 'application/javascript'
             self.response.out.write(json.dumps(out_data))
 
 class RedirectAgencyList(BasePublicPage):
     def get(self):
         self.redirect('/agencies')
+
+class APIAgencyPage(BaseAPIPage):
+    def get(self, slug):
+        s = utils.lookupAgencyAlias(slug)
+        logging.warning('new slug %s '% s)
+        if s:
+            slug = s
+        agency = utils.getAgency(slug)
+        logging.warning('agency %s' % agency )
+        if not agency:
+            return self.api_error(404, 'AGENCY_NOT_FOUND')
+        messages =model.MessageAgency.all().filter('agency',agency).order('-date').fetch(1000)
+        messages = [message.message.json() for message in messages if message.hasFile]
+        self.api_response(dict(
+            agency=agency.json(),
+            datafiles=messages
+        ))
+
 
 class APIAgencies(BaseAPIPage):
     def get(self):
@@ -211,7 +233,7 @@ class APIAgencies(BaseAPIPage):
                 csvwriter.writerow(row.values())
             return
         
-        self.render(data=response)
+        self.api_response(response)
         
 
 class UnicodeWriter:
@@ -858,6 +880,7 @@ def real_main():
                    ('/agencies/bylastupdate',AgenciesByLastUpdate),
                    ('/agencies/astable',AgenciesAsTable),
                    ('/agencies',Agencies),
+                   ('/agency/(?P<slug>.*?).json$',APIAgencyPage),
                    ('/agency/(?P<slug>.*?)/latest.zip',LatestAgencyFile),
                    ('/agency/(?P<slug>.*?)/edit',AgencyEditPage),
                    ('/agency/(?P<slug>.*?)/?',AgencyPage),

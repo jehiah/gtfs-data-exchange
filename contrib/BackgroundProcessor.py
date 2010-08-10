@@ -1,5 +1,9 @@
 import S3,os,sys
-import urllib,urllib2,time,datetime,md5,zipfile,StringIO
+import urllib2
+import time
+import md5
+import zipfile
+import StringIO
 import MultipartPostHandler
 from s3settings import AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
 import EmailUtils
@@ -31,7 +35,7 @@ class BackgroundProcessor:
             self.homebase = 'http://www.gtfs-data-exchange.com/'
             self.bucket = "gtfs"
         else:
-            self.homebase = 'http://localhost:8081/'
+            self.homebase = 'http://localhost:8085/'
             self.bucket = "gtfs-devel"
 
         auth_handler = urllib2.HTTPBasicAuthHandler()
@@ -48,11 +52,11 @@ class BackgroundProcessor:
     def reconnect(self):
         self.conn = S3.AWSAuthConnection(AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY)
 
-    def sendSuccessEmail(self,filename,metadata):
+    def sendSuccessEmail(self, filename, metadata):
         email = metadata.get('user','')
         comments = self.markdown.convert(metadata.get('comments',''))
         if not email:
-            print "no email stored for key",key,"error",msg
+            print "error, no email stored", filename, metadata
             return
         nickname = email.split('@')[0]
         if email == "gtfs-archiver@gmail.com":

@@ -45,5 +45,7 @@ def main():
         a.lastupdate = datetime.datetime.utcfromtimestamp(agency['date_last_updated'])
         a.put()
     
+    # TODO: load message data too
+    
 if __name__ == "__main__":
     main()

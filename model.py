@@ -138,6 +138,19 @@ class Message(db.Model):
             return 'http://gtfs-devel.s3.amazonaws.com/' + self.filename
         else:
             return "/gtfs/"+ (self.filename or '')
+    
+    def json(self):
+        agencies = [x.slug for x in self.agencies()]
+        return dict(
+            filename=self.filename,
+            agencies=agencies,
+            uploaded_by_user=str(self.user),
+            md5sum=self.md5sum,
+            size=self.size,
+            date_added=time.mktime(self.date.timetuple()),
+            description=self.content,
+            file_url=self.filelink(production=True) #TODO: make this value dynamic
+        )
 
 # class ValidationResult(db.Model):
 #     message = db.ReferenceProperty(Message)
@@ -155,7 +168,6 @@ class MessageAgency(db.Model):
     message = db.ReferenceProperty(Message,collection_name='agencies_set')
     date = db.DateTimeProperty(auto_now_add=True)
     hasFile = db.BooleanProperty(default=False)
-
 
 ## Crawler Stuff
 

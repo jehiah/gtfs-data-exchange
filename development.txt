@@ -1,0 +1,12 @@
+
+# bulk load a copy of production agency data
+# note: this deletes existing data first
+$ python bulk_load.py_
+
+# crawl a file and queue it for upload
+$ cd contrib
+$ python gtfs_crawler.py --allow-upload --shunt http://www.yourdomain.com/path/to/google_transit.zip
+
+# process the zip file
+$ cd contrib
+$ python BackgroundProcessor.py
