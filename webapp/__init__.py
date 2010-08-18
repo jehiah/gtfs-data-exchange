@@ -42,11 +42,12 @@ class RequestHandler(RequestHandler):
         """
         Helper method to render the appropriate template
         """
-        if not template_file == None:
-            self.template_file = template_file
-        self.template_vals.update(template_vals)
-        path = os.path.join(os.path.dirname(__file__), self.template_file)
-        self.response.out.write(template.render(path, self.template_vals))
+        raise NotImplemented()
+        # if not template_file == None:
+        #     self.template_file = template_file
+        # self.template_vals.update(template_vals)
+        # path = os.path.join(os.path.dirname(__file__), self.template_file)
+        # self.response.out.write(template.render(path, self.template_vals))
 
 class WSGIApplication2(WSGIApplication):
     """

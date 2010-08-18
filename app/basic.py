@@ -34,7 +34,6 @@ def admin_required(method):
 
 class BaseController(webapp2.RequestHandler):
     def __init__(self):
-        self.template = 'index.html'
         current_userisadmin = False
         if users.get_current_user() and users.is_current_user_admin():
             current_userisadmin = True
@@ -74,7 +73,7 @@ class BaseController(webapp2.RequestHandler):
                              'user':users.get_current_user(),
                              'production':self.production})
         template_vals.update(self.template_vals)
-        path = os.path.join(os.path.dirname(__file__), template_file)
+        path = os.path.join(os.path.join(os.path.dirname(__file__),'..'), template_file)
         self.response.out.write(template.render(path, template_vals))
 
 

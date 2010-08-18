@@ -22,6 +22,7 @@ from django.core.paginator import ObjectPaginator
 import app.basic
 import app.crawler
 import app.upload
+import app.admin
 
 class StaticPage(app.basic.BasePublicPage):
     def get(self):
@@ -224,7 +225,7 @@ class CommentAdminPage(app.basic.BasePublicPage):
             return self.error(404)
         if not obj:
             return self.error(404)
-        self.render('views/commentAdmin.html',{'msg':obj})
+        self.render('views/comment_admin.html',{'msg':obj})
     @app.basic.admin_required
     def post(self,key=None):
         try:
@@ -362,7 +363,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
                 return self.error(404)
             memcache.set(key,agency)
 
-        self.render('views/AgencyEdit.html',{'agency':agency})
+        self.render('views/agency_edit.html',{'agency':agency})
 
     @app.basic.login_required
     def post(self,slug):
@@ -411,66 +412,6 @@ class ZipFilePage(app.basic.BasePublicPage):
             return self.redirect(f.filelink(production=production))
         else:
             return self.error(404)
-
-class ManageAliases(app.basic.BasePublicPage):
-    @app.basic.admin_required
-    def __before__(self,*args):
-        pass
-        
-    def get(self):
-        ## Get agencies ??
-        agencies = utils.getAllAgencies()
-        
-        self.render('views/ManageAliases.html',{'agencies':agencies})
-
-    def post(self):
-        f = self.request.POST.get('from_agency','')
-        t = self.request.POST.get('to_agency','')
-        if not t or f == t:
-            return self.render('views/ManageAliases.html',{'error':'Select an agency to merge from, and one to merge to'})
-        
-        if not f and  (not self.request.POST.get('to_name','') or not self.request.POST.get('to_slug','')):
-            return self.render('views/ManageAliases.html',{'error':'new name and slug must be selected when only selecting the "to" agency'})
-        
-        if f:
-            f = db.get(db.Key(f))
-        t = db.get(db.Key(t))
-
-        if not t or f == t:
-            return self.render('views/ManageAliases.html',{'error':'Select an agency to merge from, and one to merge to'})
-        
-        ## go through the messages
-        if f:
-            for m in model.MessageAgency.all().filter('agency =',f).fetch(500):
-                m.agency=t
-                m.put()
-        else:
-            ## we are merging from an old name/alias
-            f = db.get(db.Key(self.request.POST.get('to_agency',''))) ## re-fetch the new one as the old one
-            t.name = self.request.POST.get('to_name','')
-            t.slug = self.request.POST.get('to_slug','')
-            t.put()
-        
-        aa = model.AgencyAlias()
-        aa.name = f.name
-        aa.date_added = f.date_added
-        aa.slug = f.slug
-        aa.real_agency=t
-        aa.put()
-        
-        if f.key() != t.key(): ## make sure they were diferent items
-            f.delete()
-            utils.decrAgencyCount()
-        memcache.delete('Message.recent')
-        memcache.delete('Agency.all')
-        memcache.delete('Agency.slug.%s' % aa.slug)
-        memcache.delete('AgencyAlias.slug.%s' % aa.slug)
-        
-        self.render('views/generic.html',{'message':'Agency Meregd Successfully'})
-
-
-
-        
 
 
 class ValidationResults(app.basic.BaseController):
@@ -522,15 +463,17 @@ def real_main():
                    ('/agency/(?P<slug>.*?)/edit',AgencyEditPage),
                    ('/agency/(?P<slug>.*?)/?',AgencyPage),
                    ('/gtfs/(?P<name>.*\.zip)',ZipFilePage),
-                   ('/manage/',ManageAliases),
-
+                   
+                   ('/a/', app.admin.AdminIndex),
+                   ('/a/aliases', app.admin.AdminAliases),
+                   
+                   ('/a/crawler',app.crawler.CrawlerMain),
                    ('/crawl/nexturl',app.crawler.CrawlNextUrl),
-                   ('/crawl/?',app.crawler.CrawlerMain),
                    ('/crawl/headers',app.crawler.CrawlHeaders),
                    ('/crawl/shouldSkip',app.crawler.CrawlShouldSkip),
                    ('/crawl/upload',app.crawler.CrawlUpload),
                    ('/crawl/undoLastRun',app.crawler.CrawlUndoLastRun),
-
+                   
                    ('/ValidationResults',ValidationResults),
                    ('/api/agencies',APIAgencies),
                    ],debug=True)

@@ -10,7 +10,7 @@
 <ul>
 {% for u in crawlurls %}
 <li>{{u.url}} - <small>last crawled {{u.lastcrawled|timesince}} ago</small><br/>
-	<form action="/crawl" method="post">
+	<form action="/a/crawler" method="post">
 		<input type="hidden" name="orig_url" value="{{u.url}}">
 			<fieldset>
 				<label>URL:<input type="text" name="url" size="100" value="{{u.url}}"/></label><br/>
@@ -27,7 +27,7 @@
 </ul>
 {% endif %}
 
-<form action="/crawl" method="post">
+<form action="/a/crawler" method="post">
 		<fieldset>
 			<legend>Add URL To Crawl</legend>
 			<label>URL:<br/><input type="text" name="url" size="100"/></label><br/>

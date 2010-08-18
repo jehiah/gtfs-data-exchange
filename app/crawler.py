@@ -25,7 +25,7 @@ class CrawlerMain(app.basic.BaseController):
     @app.basic.admin_required
     def get(self):
         crawlurls = model.CrawlBaseUrl.all().order('lastcrawled').fetch(1000)
-        self.render('views/CrawlerMain.html',{'crawlurls':crawlurls})
+        self.render('views/crawler_main.html',{'crawlurls':crawlurls})
 
     def post(self):
         if self.request.POST.get('orig_url'):

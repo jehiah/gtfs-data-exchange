@@ -7,13 +7,14 @@
 {% block body %}
 <h3>Manage Agency Aliases</h3>
 <p>Use this page to merge two agency names</p>
+<p>be werry werry kareful.</p>
 
 {% if error %}
 <div class="error">{{error}}</div>
 {% endif %}
 
 <fieldset>
-	<form action="/manage/" method="post">
+	<form action="/a/aliases" method="post">
 		<label>Merge From:<br/>
 		<select name="from_agency" id="from_agency">
 			<option value="">Select One ...</option>

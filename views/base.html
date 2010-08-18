@@ -9,7 +9,7 @@
 
 <div id="container">
 <div id="dashboard">
-        <!--- <a href="/feed" title="Subscribe to {{ blog.title }} RSS feed">Subscribe to the feed <img src="/static/images/feed-icon-16x16.png" width="16" height="16" border="0" title="Subscribe to Blog's RSS feed" alt="RSS"/></a> --->
+        <!-- <a href="/feed" title="Subscribe to {{ blog.title }} RSS feed">Subscribe to the feed <img src="/static/images/feed-icon-16x16.png" width="16" height="16" border="0" title="Subscribe to Blog's RSS feed" alt="RSS"/></a> -->
 </div>
 
 <div id="header">
@@ -18,6 +18,9 @@
 <div id="nav">
     <div id="usernav">
     <a href="/upload" >Upload GTFS File</a> <span class="pipe">|</span>
+    {% if current_userisadmin %}
+    <a href="/a/">Admin</a> <span class="pipe">|</span>
+    {% endif %}
     <a href="{{url}}" >{{url_linktext}}</a> 
     </div>
     <a href="/agencies">All Agencies</a> <span class="pipe">|</span>
