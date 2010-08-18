@@ -11,27 +11,27 @@ import model
 import utils
 
 class UploadError(Exception):
-    def __init__(self,msg):
+    def __init__(self, msg):
         logging.warning('upload error ' + str(msg))
         self.msg = msg
     def __str__(self):
         return str(self.msg)
 
 
-def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
+def uploadfile(username, agencydata, comments, md5sum, sizeoffile):
     ## todo: cache
-    if model.Message.all().filter('md5sum =',md5sum).count() >0:
+    if model.Message.all().filter('md5sum =', md5sum).count() >0:
         raise UploadError('This file has previously been uploaded')
     ## todo: cache
-    if model.SkipMd5.all().filter('md5sum =',md5sum).count() >0:
+    if model.SkipMd5.all().filter('md5sum =', md5sum).count() >0:
         raise UploadError('This file has previously been uploaded')
-
+    
     raw_agencies = utils.readfile(agencydata)
     if not raw_agencies:
         raise UploadError("zip file did not contain any valid agencies in agency.txt.")
-
+    
     ## save our msg
-    m = model.Message(user=username,content=comments)
+    m = model.Message(user=username, content=comments)
     m.hasFile = True
     memcache.delete('Message.recent')
     # m.filename = filename
@@ -47,9 +47,9 @@ def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
         ## lookup by url first
         
         a = None
-        if ag.get('agency_url','').strip():
+        if ag.get('agency_url', '').strip():
             ## try to get via url first as it's more unique
-            a = model.Agency.all().filter('url =',ag['agency_url'].strip()).get()
+            a = model.Agency.all().filter('url =', ag['agency_url'].strip()).get()
         if not a:
             slug = model.slugify(ag['agency_name'].strip())
             s = utils.lookupAgencyAlias(slug)
@@ -57,48 +57,48 @@ def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
                 slug = s
             a = memcache.get('Agency.slug.%s' % slug)
             if not a:
-                a = model.Agency.all().filter('slug =',slug).get()
+                a = model.Agency.all().filter('slug =', slug).get()
         if a:
             a.messagecount +=1
             a.lastupdate = datetime.datetime.now()
             a.put()
-            memcache.set('Agency.slug.%s' % a.slug,a)
+            memcache.set('Agency.slug.%s' % a.slug, a)
         if not a:
             a = model.Agency()
             a.name = ag['agency_name'].strip()
-            a.url = ag.get('agency_url','')
+            a.url = ag.get('agency_url', '')
             a.messagecount = 1
             a.put()
             memcache.delete('Agency.recent')
             utils.incrAgencyCount()
-            
+        
         if len(raw_agencies) == 1:
-            m.filename = '%s_%s.zip' % (a.slug,datestr)
+            m.filename = '%s_%s.zip' % (a.slug, datestr)
             m.put()
-
+        
         # some zip files have the same url several times; only capture the first time that url is used
         if a in seen_agencies:
             continue
         seen_agencies.append(a)
-
+        
         ma= model.MessageAgency()
         ma.agency = a
         ma.message = m
         ma.hasFile=True
         ma.put()
         memcache.delete('Agency.all') # because it has the cached last-update
-
+    
     if not m.filename:
-        m.filename = '%s_%s.zip' % (username.nickname(),datestr)
+        m.filename = '%s_%s.zip' % (username.nickname(), datestr)
         m.put()
-
-    recentFiles = model.Message.all().filter('hasFile =',True).filter('date >=',datetime.datetime(d.year,d.month,d.day,d.hour,d.minute)).count()
+    
+    recentFiles = model.Message.all().filter('hasFile =', True).filter('date >=', datetime.datetime(d.year, d.month, d.day, d.hour, d.minute)).count()
     if recentFiles > 1: # note we already saved *this* filename
-        m.filename= m.filename.replace('.zip','_%d.zip' % recentFiles)
+        m.filename= m.filename.replace('.zip', '_%d.zip' % recentFiles)
         m.put()
-
+    
     ## send email to user ?
-
+    
     return m.filename
 
 class UploadFile(app.basic.BasePublicPage):
@@ -112,28 +112,28 @@ class UploadFile(app.basic.BasePublicPage):
             signature="C2wGDUj7kyN1bJ+jhLc662iZsXc="
         randstring = ''.join([random.choice(string.letters+string.digits) for x in range(20)])
         nextkey = str(datetime.datetime.now())+'-'+randstring+'.zip'
-        self.render('views/upload.html',{'policy':policy,'signature':signature,'nextkey':nextkey.replace(' ','-')})
-
+        self.render('views/upload.html', {'policy':policy, 'signature':signature, 'nextkey':nextkey.replace(' ', '-')})
+    
     @app.basic.login_required
     def post(self):
         if 'upload_file' not in self.request.POST:
             self.error(400)
             self.response.out.write("file not specified!")
             return
-        if (self.request.POST.get('upload_file', None) is None or 
+        if (self.request.POST.get('upload_file', None) is None or
            not self.request.POST.get('upload_file', None).filename):
             self.error(400)
             self.response.out.write("file not specified!")
             return
-
+        
         name = self.request.POST.get('upload_file').filename
         logging.info('upload file name ' + str(name))
-
+        
         filedata = self.request.POST.get('upload_file').file.read()
         contentType = self.request.POST.get('upload_file').type ## check that it's zip!
-
+        
         try:
-            redirect_url = uploadfile(username=users.get_current_user(),filename=name,filedata=filedata,contentType=contentType,comments=self.request.POST.get('comments',''))
+            redirect_url = uploadfile(username=users.get_current_user(), filename=name, filedata=filedata, contentType=contentType, comments=self.request.POST.get('comments', ''))
         except UploadError, e:
             self.error(400)
             return self.response.out.write(e.msg)
