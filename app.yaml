@@ -1,5 +1,5 @@
 application: gtfs-data-exchange
-version: 5
+version: 6
 runtime: python
 api_version: 1
 
@@ -26,7 +26,6 @@ handlers:
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
-
 
 - url: .*
   script: main.py
