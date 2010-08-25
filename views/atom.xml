@@ -20,7 +20,6 @@
 
 {% if msg.hasFile %}
 <p><a href="{{baseurl}}{{msg|gtfsurl}}">{{baseurl}}{{msg|gtfsurl}}</a> {% if msg.size %}<span class="filesize">{{msg.size|filesizeformat}}</span>{% endif %}</p>
-{{msg.validation_results}}
 {% endif %}	
 ]]></content>
 	  {% if msg.hasFile %}<link rel="enclosure" type="application/zip" title="{{msg.filename}}" href="{{baseurl}}{{msg|gtfsurl}}" {% if msg.size %}length="{{msg.size}}"{% endif %} />{% endif %}

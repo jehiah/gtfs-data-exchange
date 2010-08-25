@@ -7,10 +7,12 @@ import datetime
 import time
 
 def slugify(value):
+    # this version of slugify is stupid, but it should be ok with international names
     value = re.sub('[^\w\s-]', '', value).strip().lower()
     return re.sub('[-\s]+', '-', value)
 
 def rfc3339(d):
+    # used for rss formatting
     return d.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 class Counter(db.Model):
@@ -100,9 +102,6 @@ class Message(db.Model):
     filename = db.StringProperty(multiline=False)
     md5sum = db.StringProperty(multiline=False)
     size = db.IntegerProperty()
-    validation_results = db.TextProperty(default='')
-    validated = db.BooleanProperty(default=False)
-    validated_on = db.DateTimeProperty()
 
     def agencies(self):
         a = getattr(self,'_agencies',None)
@@ -151,17 +150,6 @@ class Message(db.Model):
             description=self.content,
             file_url=self.filelink(production=True) #TODO: make this value dynamic
         )
-
-# class ValidationResult(db.Model):
-#     message = db.ReferenceProperty(Message)
-#     validation_results = db.TextProperty(default='')
-#     validated_on = db.DateTimeProperty()
-# 
-# class TableInspection(db.Model):
-#     message = db.ReferenceProperty(Message)
-#     filename = db.StringProperty(multiline=False)
-#     columns = db.StringProperty(multiline=False)
-#     content = db.TextProperty(default='')
 
 class MessageAgency(db.Model):
     agency = db.ReferenceProperty(Agency,collection_name='messages_set')
