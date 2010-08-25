@@ -12,6 +12,11 @@ indexes:
 
 - kind: CrawlBaseUrl
   properties:
+  - name: agency
+  - name: lastcrawled
+
+- kind: CrawlBaseUrl
+  properties:
   - name: lastcrawled
     direction: desc
 

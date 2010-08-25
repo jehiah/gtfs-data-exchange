@@ -38,5 +38,34 @@
 	</form>
 </fieldset>
 
+<h2>URLS to be crawled</h2>
+
+{% for u in crawl_urls %}
+<form action="/a/edit/{{agency.slug}}" method="post">
+	<input type="hidden" name="orig_url" value="{{u.url}}">
+	<fieldset>
+        <small>last crawled {{u.lastcrawled|timesince}} ago</small><br/>
+		<label>URL:<input type="text" name="url" size="100" value="{{u.url}}"/></label><br/>
+		<label>Recurse:<input type="text" name="recurse" size="5"value="{{u.recurse}}"></label><br/>
+		<label>download as:<input type="text" name="download_as" size="45"value="{{u.download_as}}"></label><br/>
+		<label>show url:<input type="checkbox" name="show_url" value="True" {% if u.show_url %} checked {% endif %}></label><br/>
+		<label>post text:<input type="text" name="post_text" value="{{u.post_text}}" size="100"></label><br/>
+		<input type="submit" name="action.save.url" value="save"><br/>
+	</fieldset>
+</form>
+<!-- TODO: show status of this crawl. has it been 404'ing? 304? redirect? -->
+{% endfor %}
+
+<p>New Crawl URL:</p>
+<form action="/a/edit/{{agency.slug}}" method="post">
+	<fieldset>
+		<label>URL:<input type="text" name="url" size="100" value=""/></label><br/>
+		<label>Recurse:<input type="text" name="recurse" size="5"value="1"></label><br/>
+		<label>download as:<input type="text" name="download_as" size="45"value="{{agency.slug}}-archiver"></label><br/>
+		<label>show url:<input type="checkbox" name="show_url" value="True" checked></label><br/>
+		<label>post text:<input type="text" name="post_text" value="" size="100"></label><br/>
+		<input type="submit" name="action.save.url" value="save"><br/>
+	</fieldset>
+</form>
 
 {% endblock body %}

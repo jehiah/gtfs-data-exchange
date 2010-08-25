@@ -4,6 +4,7 @@ from google.appengine.api import memcache
 import model
 import app.basic
 import utils
+import datetime
 
 class AdminIndex(app.basic.BaseController):
     @app.basic.admin_required
@@ -87,6 +88,23 @@ class AgencyEditPage(app.basic.BasePublicPage):
         agency = utils.get_agency(slug)
         if not agency:
             return self.error(404)
+
+        if self.request.POST.get('action.save.url'):
+            url = self.request.POST.get('orig_url')
+            if url:
+                c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            else:
+                c = model.CrawlBaseUrl()
+                c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
+                c.agency = agency
+            c.url = self.request.POST.get('url')
+            c.recurse = int(self.request.POST.get('recurse'))
+            c.download_as = self.request.POST.get('download_as', 'gtfs-archiver')
+            c.show_url = self.request.POST.get('show_url', True) == 'True'
+            c.post_text = self.request.POST.get('post_text', '')
+            c.put()
+            self.redirect('/a/edit/' + agency.slug)
+            
 
         # agency.name = self.request.POST.get('name', agency.name)
         # agency.slug = self.request.POST.get('slug', agency.slug)

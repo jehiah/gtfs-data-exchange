@@ -9,16 +9,23 @@
 {% if crawlurls %}
 <ul>
 {% for u in crawlurls %}
-<li>{{u.url}} - <small>last crawled {{u.lastcrawled|timesince}} ago</small><br/>
-	<form action="/a/crawler" method="post">
+<li><form action="/a/crawler" method="post">
 		<input type="hidden" name="orig_url" value="{{u.url}}">
-			<fieldset>
-				<label>URL:<input type="text" name="url" size="100" value="{{u.url}}"/></label><br/>
-				<label>Recurse:<input type="text" name="recurse" size="5"value="{{u.recurse}}"></label><br/>
-				<label>download as:<input type="text" name="download_as" size="15"value="{{u.download_as}}"></label><br/>
-				<label>show url:<input type="checkbox" name="show_url" value="True" {% if u.show_url %} checked {% endif %}></label><br/>
-				<label>post text:<input type="text" name="post_text" value="{{u.post_text}}" size="100"></label><br/>
-				<input type="submit" name="action.save" value="save"><br/>
+		<fieldset>
+			URL:{{u.url}}<br/>
+			<small>last crawled {{u.lastcrawled|timesince}} ago</small><br/>
+			Recurse:{{u.recurse}}<br/>
+			download as:{{u.download_as}}<br/>
+			show url:{% if u.show_url %} True {% else %} False {% endif %}<br/>
+			{% if u.post_text %} post text:{{u.post_text}}<br/>{% endif %}
+    		<select name="link">
+    		    <option value="">Link to ...</option>
+    		    {% for agency in agencies %}
+    		        <option value="{{agency.slug}}">{{agency.name}} - {{agency.location}}</option>
+    		    {% endfor %}
+    		</select>
+    		<button type="submit">Link</button>
+
 		</fieldset>
 	</form>
 	
@@ -26,19 +33,6 @@
 {% endfor %}
 </ul>
 {% endif %}
-
-<form action="/a/crawler" method="post">
-		<fieldset>
-			<legend>Add URL To Crawl</legend>
-			<label>URL:<br/><input type="text" name="url" size="100"/></label><br/>
-			<label>Recurse:<br/><input type="text" name="recurse" size="5"value="1"></label><br/>
-			<label>download as:<br/><input type="text" name="download_as" size="15"value="gtfs-archiver"></label><br/>
-			<label>show url:<br/><input type="checkbox" name="show_url" value="True"></label><br/>
-			<label>post text:<br/><input type="text" name="post_text" value="" size="100"></label><br/>
-			<input type="submit" name="action.add" value="Add"><br/>
-			
-	</fieldset>
-</form>
 
 </body>
 </html>

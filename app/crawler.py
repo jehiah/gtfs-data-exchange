@@ -5,6 +5,7 @@ from google.appengine.api import users
 
 import app.basic
 import model
+import utils
 import logging
 
 from app.upload import uploadfile, UploadError
@@ -25,11 +26,22 @@ class CrawlerMain(app.basic.BaseController):
     @app.basic.admin_required
     def get(self):
         crawlurls = model.CrawlBaseUrl.all().order('lastcrawled').fetch(1000)
-        self.render('views/crawler_main.html', {'crawlurls':crawlurls})
+        crawlurls = [x for x in crawlurls if not x.agency] # filter out the ones linked to an agency since we can't do that in a filter()
+        agencies = utils.get_all_agencies()
+        self.render('views/crawler_main.html', {'crawlurls':crawlurls, 'agencies':agencies})
     
     def post(self):
-        if self.request.POST.get('orig_url'):
-            c = model.CrawlBaseUrl().all().filter('url =', self.request.POST.get('orig_url')).get()
+        url = self.request.POST.get('orig_url')
+        if self.request.POST.get('link'):
+            # link this to an agency
+            agency = utils.get_agency(self.request.POST.get('link'))
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            c.agency = agency
+            c.put()
+            return self.redirect('/a/edit/' + agency.slug)
+        
+        if url:
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
         else:
             c = model.CrawlBaseUrl()
             c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
