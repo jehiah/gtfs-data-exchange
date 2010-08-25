@@ -11,11 +11,11 @@ class APIAgencyPage(app.basic.BaseAPIPage):
         if not slug:
             return self.api_error(404, 'MISSING_ARG_AGENCY')
             
-        s = utils.lookupAgencyAlias(slug)
+        s = utils.lookup_agency_alias(slug)
         logging.warning('new slug %s '% s)
         if s:
             slug = s
-        agency = utils.getAgency(slug)
+        agency = utils.get_agency(slug)
         logging.warning('agency %s' % agency )
         if not agency:
             return self.api_error(404, 'AGENCY_NOT_FOUND')
@@ -29,7 +29,7 @@ class APIAgencyPage(app.basic.BaseAPIPage):
 
 class APIAgencies(app.basic.BaseAPIPage):
     def get(self):
-        agencies = utils.getAllAgencies()
+        agencies = utils.get_all_agencies()
         response = [agency.json() for agency in agencies]
         self.api_response(response)
 

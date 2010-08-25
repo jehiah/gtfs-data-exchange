@@ -52,7 +52,7 @@ def uploadfile(username, agencydata, comments, md5sum, sizeoffile):
             a = model.Agency.all().filter('url =', ag['agency_url'].strip()).get()
         if not a:
             slug = model.slugify(ag['agency_name'].strip())
-            s = utils.lookupAgencyAlias(slug)
+            s = utils.lookup_agency_alias(slug)
             if s:
                 slug = s
             a = memcache.get('Agency.slug.%s' % slug)

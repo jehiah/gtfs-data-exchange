@@ -43,7 +43,7 @@ inputPane = document.getElementById("comments");
 	</p>
 
 {% if current_userisadmin %}
-    <p><a href="/agency/{{agency.slug}}/edit"><img src="/static/pencil.png"> Edit</a></p> 
+    <p><a href="/a/edit/{{agency.slug}}"><img src="/static/pencil.png"> Edit</a></p> 
 {% endif %}
 
 {{agency.display_description}}
@@ -67,27 +67,5 @@ inputPane = document.getElementById("comments");
 
 {% endfor %}
 
-
-{% comment %}
-{% if user %}
-<p>&nbsp;</p>
-<fieldset>
-    <p>Have an updated, or slightly modified GTFS file for {{agency.name}}? <a href="/upload">Upload It</a>, and it will automatically be linked to this page.</p>
-    <p>Notice a schedule update, or a problem with an existing GTFS file for {{agency.name}}? mention it here so other developers can benifit.</p>
-    <form method="post" action="{{agency.link}}">
-    <textarea id="comments" name="comments" style="height:5em;width:100%;" onclick="this.style.height='15em';" onfocus="this.style.height='15em';"></textarea><br/>
-    <input type="submit" name="action.savecomments" value="Post Comments">
-    </form>
-    
-    <div id="previewblock" style="display:none;">
-    <h3>Comment Preview: (use <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">markdown syntax</a> for text formatting)</h3>
-    <div id="previewPane" class="pane"><noscript><strong>You'll need to enable Javascript to see a preview.</strong></noscript></div>
-    </div>
-    
-</fieldset>
-{% else %}
-<p><a href="{{url}}">{{url_linktext}}</a> to Add a comment about new {{agency.name}} schedule data, or to upload a GTFS file</p>
-{% endif %}
-{% endcomment %}
 
 {% endblock %}

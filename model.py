@@ -178,14 +178,15 @@ class CrawlBaseUrl(db.Model):
     download_as = db.StringProperty(multiline=False,default='gtfs-archiver')
     show_url = db.BooleanProperty(default=True)
     post_text = db.StringProperty(multiline=False,default='')
-    # agency = db.ReferenceProperty(agency)
+    agency = db.ReferenceProperty(Agency)
     def asMapping(self):
         return {'url' : self.url,
                 'recurse' : self.recurse,
                 'download_as' : self.download_as,
                 'show_url' : self.show_url,
-                'post_text' : self.post_text}
-        #       'agency_slug' : self.agency and self.agency.slug or None
+                'post_text' : self.post_text,
+                'agency_slug' : self.agency and self.agency.slug or None
+                }
     
 class CrawlUrl(db.Model):
     url = db.LinkProperty()

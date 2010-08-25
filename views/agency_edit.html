@@ -13,7 +13,7 @@
 {% endif %}
 
 <fieldset>
-	<form action="/agency/{{agency.slug}}/edit" method="post">
+	<form action="/a/edit/{{agency.slug}}" method="post">
 		<label>URL:<br/>
 		<input type="text" size="100" name="url" value="{{agency.url|default:""}}"></label><br/>
 		<label>Country:<br/>
@@ -27,7 +27,7 @@
 		<label>License Agreement Url:<br/>
 		<input type="text" size="100" name="license" value="{{agency.license_url|default:""}}"></label><br/>
 		<label>Description (markdown):<br/>
-		<textarea name="description" style="width:700px;height:300px;">{{agency.description|default:""}}</textarea>	
+		<textarea name="description" style="width:700px;height:100px;">{{agency.description|default:""}}</textarea>	
 		</label><br/>
         
         Official Data: 

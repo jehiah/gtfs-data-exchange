@@ -16,7 +16,6 @@ class AdminAliases(app.basic.BasePublicPage):
         pass
     
     def get(self):
-        ## Get agencies ??
         agencies = utils.getAllAgencies()
         self.render('views/admin_aliases.html', {'agencies': agencies})
     
@@ -64,3 +63,47 @@ class AdminAliases(app.basic.BasePublicPage):
         memcache.delete('AgencyAlias.slug.%s' % aa.slug)
         
         self.render('views/generic.html', {'message':'Agency Merged Successfully'})
+
+
+class AgencyEditPage(app.basic.BasePublicPage):
+    @app.basic.admin_required
+    def get(self, slug):
+        # TODO: should we even do this on an admin page? admin links should always be golden
+        s = utils.lookup_agency_alias(slug)
+        if s:
+            return self.redirect('/a/edit/%s' % s)
+
+        agency = utils.get_agency(slug)
+        if not agency:
+            return self.error(404)
+        
+        crawl_urls = model.CrawlBaseUrl.all().filter('agency =', agency).fetch(100)
+        
+        self.render('views/agency_edit.html', {'agency':agency, 'crawl_urls': crawl_urls})
+
+    @app.basic.login_required
+    def post(self, slug):
+        agency = utils.get_agency(slug)
+        if not agency:
+            return self.error(404)
+
+        # agency.name = self.request.POST.get('name', agency.name)
+        # agency.slug = self.request.POST.get('slug', agency.slug)
+        agency.description = self.request.POST.get('description', agency.description)
+        agency.url = self.request.POST.get('url', agency.url)
+
+        agency.country_name = self.request.POST.get('country', agency.country_name).strip()
+        agency.state_name = self.request.POST.get('state', agency.state_name).strip()
+        agency.area_name = self.request.POST.get('area', agency.area_name).strip()
+        agency.feed_baseurl = self.request.POST.get('feed', agency.feed_baseurl).strip()
+        agency.license_url = self.request.POST.get('license', agency.license_url).strip()
+        agency.is_official = self.request.POST.get('official', '0') == '1'
+
+        # agency.lastupdate = datetime.datetime.now() # this is for the last message 'update'
+        agency.put()
+        # memcache.delete('Agency.slug.%s' % slug)
+        # memcache.delete('Agency.recent')
+        memcache.delete('Agency.all')
+        memcache.set('Agency.slug.%s' % agency.slug, agency)
+
+        self.render('views/generic.html', {'message':'Agency %s updated' % agency.name})

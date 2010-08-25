@@ -15,7 +15,7 @@ import os
 import csv
 import StringIO
 
-def getAllAgencies():
+def get_all_agencies():
     agencies = memcache.get('Agency.all')
     if not agencies:
         agencies = model.Agency.all().order('name').fetch(500)
@@ -72,7 +72,7 @@ def getAgencyCount():
     memcache.set(key, str(count), 60*60*24*2)
     return count
     
-def lookupAgencyAlias(lookupslug):
+def lookup_agency_alias(lookupslug):
     lookupslug = lookupslug.strip()
     key ='AgencyAlias.slug.%s' % lookupslug
     a = memcache.get(key)
@@ -86,7 +86,7 @@ def lookupAgencyAlias(lookupslug):
     memcache.set(key,r)#,60*60*24) # 24 hours?
     return r
 
-def getAgency(slug):
+def get_agency(slug):
     key = 'Agency.slug.%s' % slug
     agency = memcache.get(key)
     if not agency:

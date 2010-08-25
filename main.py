@@ -69,12 +69,9 @@ class RedirectAgencyList(app.basic.BasePublicPage):
     def get(self):
         self.redirect('/agencies')
 
-
-
-
 class Agencies(app.basic.BasePublicPage):
     def get(self):
-        agencies = utils.getAllAgencies()
+        agencies = utils.get_all_agencies()
         
         grouped = {}
         for agency in agencies:
@@ -91,7 +88,7 @@ class Agencies(app.basic.BasePublicPage):
 
 class AgenciesByLocation(app.basic.BasePublicPage):
     def get(self):
-        agencies = utils.getAllAgencies()
+        agencies = utils.get_all_agencies()
         data = [[agency.country_name, agency.state_name, agency.name, agency] for agency in agencies]
         data.sort()
         agencies = [x[-1] for x in data]
@@ -101,7 +98,7 @@ class AgenciesByLocation(app.basic.BasePublicPage):
 
 class AgenciesByLastUpdate(app.basic.BasePublicPage):
     def get(self):
-        agencies = utils.getAllAgencies()
+        agencies = utils.get_all_agencies()
         data = [[agency.lastupdate, agency] for agency in agencies]
         data.sort(reverse=True)
         agencies = [x[-1] for x in data]
@@ -111,7 +108,7 @@ class AgenciesByLastUpdate(app.basic.BasePublicPage):
 
 class AgenciesAsTable(Agencies):
     def get(self):
-        agencies = utils.getAllAgencies()
+        agencies = utils.get_all_agencies()
         agency_count = utils.getAgencyCount()
         
         self.render('views/agencies_astable.html', {'agencies':agencies, 'agency_count':agency_count})
@@ -193,7 +190,7 @@ class FeedPage(app.basic.BasePublicPage):
             context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(30)).filter('user =', u).order('-date').fetch(25)
             self.render('views/agency_atom.xml', context)
         elif userOrAgency == 'agency':
-            s = utils.lookupAgencyAlias(id)
+            s = utils.lookup_agency_alias(id)
             if s:
                 return self.redirect('/%s/%s/feed' % (userOrAgency, s))
             
@@ -233,98 +230,29 @@ class UserPage(app.basic.BasePublicPage):
 
 class LatestAgencyFile(app.basic.BasePublicPage):
     def get(self, slug):
-        s = utils.lookupAgencyAlias(slug)
+        s = utils.lookup_agency_alias(slug)
         if s:
             return self.redirect('/agency/%s/' % (s))
-        agency = utils.getAgency(slug)
+        agency = utils.get_agency(slug)
         if not agency:
             return self.error(404)
         message =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1)
         if message:
             return self.redirect(message[0].message.filelink())
         return self.error(404)
-        
-    
+
 
 class AgencyPage(app.basic.BasePublicPage):
     def get(self, slug):
-        s = utils.lookupAgencyAlias(slug)
+        s = utils.lookup_agency_alias(slug)
         if s:
             return self.redirect('/agency/%s/' % (s))
         
-        agency = utils.getAgency(slug)
+        agency = utils.get_agency(slug)
         if not agency:
             return self.error(404)
         messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1000)
         self.render('views/agency.html', {'agency':agency, 'messages':messages})
-    
-    @app.basic.login_required
-    def post(self, slug):
-        key = 'Agency.slug.%s' % slug
-        agency = memcache.get(key)
-        if not agency:
-            agency = model.Agency.all().filter('slug =', slug).get()
-            if not agency:
-                return self.error(404)
-            memcache.set(key, agency)
-        if not self.request.POST.get('comments', ''):
-            self.redirect(agency.link())
-        m = model.Message(user=users.get_current_user(), content=self.request.POST.get('comments', ''))
-        m.put()
-        ma = model.MessageAgency()
-        ma.message = m
-        ma.hasFile = False
-        ma.agency = agency
-        ma.put()
-        memcache.delete('Message.recent')
-        self.redirect(agency.link())
-
-class AgencyEditPage(app.basic.BasePublicPage):
-    @app.basic.admin_required
-    def get(self, slug):
-        s = utils.lookupAgencyAlias(slug)
-        if s:
-            return self.redirect('/agency/%s/edit' % (s))
-        
-        key = 'Agency.slug.%s' % slug
-        agency = memcache.get(key)
-        if not agency:
-            agency = model.Agency.all().filter('slug =', slug).get()
-            if not agency:
-                return self.error(404)
-            memcache.set(key, agency)
-        
-        self.render('views/agency_edit.html', {'agency':agency})
-    
-    @app.basic.login_required
-    def post(self, slug):
-        key = 'Agency.slug.%s' % slug
-        agency = memcache.get(key)
-        if not agency:
-            agency = model.Agency.all().filter('slug =', slug).get()
-            if not agency:
-                return self.error(404)
-        
-        # agency.name = self.request.POST.get('name', agency.name)
-        # agency.slug = self.request.POST.get('slug', agency.slug)
-        agency.description = self.request.POST.get('description', agency.description)
-        agency.url = self.request.POST.get('url', agency.url)
-        
-        agency.country_name = self.request.POST.get('country', agency.country_name).strip()
-        agency.state_name = self.request.POST.get('state', agency.state_name).strip()
-        agency.area_name = self.request.POST.get('area', agency.area_name).strip()
-        agency.feed_baseurl = self.request.POST.get('feed', agency.feed_baseurl).strip()
-        agency.license_url = self.request.POST.get('license', agency.license_url).strip()
-        agency.is_official = self.request.POST.get('official', '0') == '1'
-        
-        # agency.lastupdate = datetime.datetime.now() # this is for the last message 'update'
-        agency.put()
-        memcache.delete(key)
-        #memcache.delete('Agency.recent')
-        memcache.delete('Agency.all')
-        memcache.set('Agency.slug.%s' % agency.slug, agency)
-        
-        self.render('views/generic.html', {'message':'Agency %s updated' % agency.name})
 
 
 class ZipFilePage(app.basic.BasePublicPage):
@@ -346,7 +274,7 @@ class ZipFilePage(app.basic.BasePublicPage):
 
 
 
-def real_main():
+def main():
     application = webapp2.WSGIApplication2(
                   [
                   #('/sitemap.xml', Sitemap),
@@ -368,12 +296,12 @@ def real_main():
                    ('/agencies', Agencies),
                    ('/agency/(?P<slug>.*?).json$', app.api.APIAgencyPage),
                    ('/agency/(?P<slug>.*?)/latest.zip', LatestAgencyFile),
-                   ('/agency/(?P<slug>.*?)/edit', AgencyEditPage),
                    ('/agency/(?P<slug>.*?)/?', AgencyPage),
                    ('/gtfs/(?P<name>.*\.zip)', ZipFilePage),
                    
-                   ('/a/', app.admin.AdminIndex),
-                   ('/a/aliases', app.admin.AdminAliases),
+                   (r'/a/$', app.admin.AdminIndex),
+                   (r'/a/aliases$', app.admin.AdminAliases),
+                   (r'/a/edit/(?P<slug>.+)$', app.admin.AgencyEditPage),
                    
                    ('/a/crawler', app.crawler.CrawlerMain),
                    ('/crawl/nexturl', app.crawler.CrawlNextUrl),
@@ -387,23 +315,6 @@ def real_main():
                    ], debug=True)
     wsgiref.handlers.CGIHandler().run(application)
 
-def profile_main():
-    # This is the main function for profiling
-    # We've renamed our original main() above to real_main()
-    import cProfile, pstats
-    prof = cProfile.Profile()
-    prof = prof.runctx("real_main()", globals(), locals())
-    print "<pre>"
-    stats = pstats.Stats(prof)
-    stats.sort_stats("time")  # Or cumulative
-    stats.print_stats(120)  # 80 = how many to print
-    # The rest is optional.
-    # stats.print_callees()
-    # stats.print_callers()
-    print "</pre>"
-
-#main = profile_main
-main = real_main
 template.register_template_library('common.templatefilters')
 
 if __name__ == '__main__':
