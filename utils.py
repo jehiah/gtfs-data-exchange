@@ -1,17 +1,6 @@
-from functools import wraps
-import wsgiref.handlers
-from google.appengine.ext.webapp import template
-from google.appengine.ext import db
-from google.appengine.ext.db import stats
-from google.appengine.api import users
 from google.appengine.api import memcache
-import webapp as webapp2
 import model
-import random
-import string
-import datetime
 import logging
-import os
 import csv
 import StringIO
 
@@ -21,6 +10,10 @@ def get_all_agencies():
         agencies = model.Agency.all().order('name').fetch(500)
         memcache.set('Agency.all',agencies)
     return agencies
+
+def get_all_aliases():
+    aliases = model.AgencyAlias.all().order('slug').fetch(200)
+    return aliases
 
 def getRecentAgencies():
     key = 'Agency.recent'

@@ -46,4 +46,15 @@
 </fieldset>
 
 
+<h2>Existing Aliases</h2>
+
+<ul>
+    {% for alias in aliases %}
+        <li>
+            {{alias.slug}} ({{alias.name}}) =&gt; {{alias.real_agency.slug}} ({{alias.real_agency.name}})<br/>
+            <em>created on {{alias.date_aliased|date:"M dS Y H:i"}}Z</em>
+        </li>
+    {% endfor %}
+</ul>
+
 {% endblock body %}

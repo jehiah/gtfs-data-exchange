@@ -16,8 +16,9 @@ class AdminAliases(app.basic.BasePublicPage):
         pass
     
     def get(self):
-        agencies = utils.getAllAgencies()
-        self.render('views/admin_aliases.html', {'agencies': agencies})
+        agencies = utils.get_all_agencies()
+        aliases = utils.get_all_aliases()
+        self.render('views/admin_aliases.html', {'agencies':agencies, 'aliases':aliases})
     
     def post(self):
         f = self.request.POST.get('from_agency', '')
@@ -102,7 +103,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
         # agency.lastupdate = datetime.datetime.now() # this is for the last message 'update'
         agency.put()
         # memcache.delete('Agency.slug.%s' % slug)
-        # memcache.delete('Agency.recent')
+        memcache.delete('Agency.recent')
         memcache.delete('Agency.all')
         memcache.set('Agency.slug.%s' % agency.slug, agency)
 
