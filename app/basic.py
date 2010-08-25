@@ -4,6 +4,8 @@ from google.appengine.api import users
 from django.utils import simplejson as json
 import os
 import logging
+import csv
+import cStringIO
 
 from functools import wraps
 
@@ -100,7 +102,22 @@ class BaseAPIPage(webapp2.RequestHandler):
         self.api_response(None, status_code, status_txt)
     
     def api_response(self, data, status_code=200, status_txt="OK"):
-        logging.info('returning %s' % data)
+        # logging.info('returning %s' % data)
+
+        if self.request.GET.get('format', None) == 'csv':
+            assert isinstance(data, (list, tuple))
+            buffer = cStringIO.StringIO()
+            csvwriter = csv.writer(buffer)
+            headers = [_utf8(x) for x in data[0].keys()]
+            csvwriter.writerow(headers)
+            for row in data:
+                # be sure to output data in the same order as the headers
+                row_data = [_utf8(unicode(row[key])) for key in headers]
+                csvwriter.writerow(row_data)
+            self.response.headers['Content-type'] = 'text/csv'
+            self.response.out.write(buffer.getvalue())
+            return
+            
         out_data = {
             'status_code':status_code,
             'status_txt':status_txt,
@@ -115,3 +132,11 @@ class BaseAPIPage(webapp2.RequestHandler):
         else:
             self.response.headers['Content-type'] = 'application/javascript'
             self.response.out.write(json.dumps(out_data))
+
+def _utf8(value):
+    if value is None:
+        return value
+    if isinstance(value, unicode):
+        return value.encode("utf-8")
+    assert isinstance(value, str)
+    return value

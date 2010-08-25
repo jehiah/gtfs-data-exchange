@@ -3,12 +3,14 @@
 
 To dump the dev datastore startup with --clear-datastore
 
+    cd data
     for kind in Counter Agency MessageAgency AgencyAlias CrawlBaseUrl CrawlSkipUrl Message; do
-        appcfg.py download_data --application=gtfs-data-exchange --kind=$kind --url=http://gtfs-data-exchange.appspot.com/remote_api --filename=data/$kind
+        appcfg.py download_data --application=gtfs-data-exchange --kind=$kind --url=http://gtfs-data-exchange.appspot.com/remote_api --filename=$kind
     done
 
+    cd data
     for kind in Counter Agency MessageAgency AgencyAlias CrawlBaseUrl CrawlSkipUrl Message; do
-        appcfg.py upload_data --application=gtfs-data-exchange --kind=$kind --url=http://127.0.0.1:8080/remote_api --filename=data/$kind
+        appcfg.py upload_data --application=gtfs-data-exchange --kind=$kind --url=http://127.0.0.1:8087/remote_api --filename=$kind
     done
 
     rm bulkloader-*

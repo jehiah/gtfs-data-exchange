@@ -12,10 +12,6 @@ import model
 import datetime
 import logging
 import utils
-import csv
-import codecs
-import types
-import cStringIO
 from django.core.paginator import ObjectPaginator
 
 # app imports
@@ -23,6 +19,7 @@ import app.basic
 import app.crawler
 import app.upload
 import app.admin
+import app.api
 
 class StaticPage(app.basic.BasePublicPage):
     def get(self):
@@ -72,74 +69,8 @@ class RedirectAgencyList(app.basic.BasePublicPage):
     def get(self):
         self.redirect('/agencies')
 
-class APIAgencyPage(app.basic.BaseAPIPage):
-    def get(self, slug):
-        s = utils.lookupAgencyAlias(slug)
-        logging.warning('new slug %s '% s)
-        if s:
-            slug = s
-        agency = utils.getAgency(slug)
-        logging.warning('agency %s' % agency )
-        if not agency:
-            return self.api_error(404, 'AGENCY_NOT_FOUND')
-        messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1000)
-        messages = [message.message.json() for message in messages if message.hasFile]
-        self.api_response(dict(
-            agency=agency.json(),
-            datafiles=messages
-        ))
 
 
-class APIAgencies(app.basic.BaseAPIPage):
-    def get(self):
-        agencies = utils.getAllAgencies()
-        response = [agency.json() for agency in agencies]
-        if self.request.GET.get('format', None)== "csv":
-            csvwriter = UnicodeWriter(self.response.out)
-            headers = response[0].keys()
-            csvwriter.writerow(headers)
-            for row in response:
-                csvwriter.writerow(row.values())
-            return
-        
-        self.api_response(response)
-
-
-class UnicodeWriter:
-    """
-    A CSV writer which will write rows to CSV file "f",
-    which is encoded in the given encoding.
-    """
-    
-    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
-        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
-    
-    def writerow(self, row):
-        d = []
-        for x in row:
-            if type(x) in types.StringTypes:
-                d.append(x.encode('utf-8'))
-            else:
-                d.append(str(x))
-        self.writer.writerow(d)
-        # self.writer.writerow([s.encode("utf-8") for s in row])
-        # Fetch UTF-8 output from the queue ...
-        data = self.queue.getvalue()
-        data = data.decode("utf-8")
-        # ... and reencode it into the target encoding
-        data = self.encoder.encode(data)
-        # write to the target stream
-        self.stream.write(data)
-        # empty queue
-        self.queue.truncate(0)
-    
-    def writerows(self, rows):
-        for row in rows:
-            self.writerow(row)
 
 class Agencies(app.basic.BasePublicPage):
     def get(self):
@@ -414,29 +345,6 @@ class ZipFilePage(app.basic.BasePublicPage):
             return self.error(404)
 
 
-class ValidationResults(app.basic.BaseController):
-    # @crawler_required
-    def get(self):
-        ## get's oldest first
-        m = model.Message.all().filter('validated =', False).filter('hasFile =', True).order('date').get()
-        if m:
-            self.response.out.write('FILE:'+m.filename)
-        else:
-            self.response.out.write('OK')
-    
-    def post(self):
-        filename = self.request.POST.get('filename')
-        md5sum = self.request.POST.get('md5sum')
-        results = self.request.POST.get('results')
-        f = model.Message.all().filter('md5sum =', md5sum).filter('filename =', filename).get()
-        if not f:
-            self.response.out.write('NOT_FOUND')
-        else:
-            f.validation_results = results
-            f.validated = True
-            f.validated_on = datetime.datetime.now()
-            f.put()
-            self.response.out.write('UPDATED')
 
 def real_main():
     application = webapp2.WSGIApplication2(
@@ -458,7 +366,7 @@ def real_main():
                    ('/agencies/bylastupdate', AgenciesByLastUpdate),
                    ('/agencies/astable', AgenciesAsTable),
                    ('/agencies', Agencies),
-                   ('/agency/(?P<slug>.*?).json$', APIAgencyPage),
+                   ('/agency/(?P<slug>.*?).json$', app.api.APIAgencyPage),
                    ('/agency/(?P<slug>.*?)/latest.zip', LatestAgencyFile),
                    ('/agency/(?P<slug>.*?)/edit', AgencyEditPage),
                    ('/agency/(?P<slug>.*?)/?', AgencyPage),
@@ -474,8 +382,8 @@ def real_main():
                    ('/crawl/upload', app.crawler.CrawlUpload),
                    ('/crawl/undoLastRun', app.crawler.CrawlUndoLastRun),
                    
-                   ('/ValidationResults', ValidationResults),
-                   ('/api/agencies', APIAgencies),
+                   (r'^/api/agency$', app.api.APIAgencyPage),
+                   (r'^/api/agencies$', app.api.APIAgencies),
                    ], debug=True)
     wsgiref.handlers.CGIHandler().run(application)
 
