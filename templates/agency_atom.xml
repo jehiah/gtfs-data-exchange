@@ -1,6 +1,6 @@
 {% extends "atom.xml" %}
 
-{%block title %}GTFS Data Exchange - {% if agency %}{{agency.name}}{% else %}{{u}}{% endif %} {% endblock title %}
-{%block feedurl %}{{baseurl}}/{{userOrAgency}}/{{id}}/feed{% endblock feedurl %}
-{% block alternateurl %}{{baseurl}}/{{userOrAgency}}/{{id}}/{% endblock alternateurl %}
-{%block extrahead %}{% if agency.description %}<subtitle>{{agency.description}}</subtitle>{% endif %}{% endblock extrahead %}
+{%block title %}GTFS Data Exchange - {% if agency %}{{agency.name}}{% else %}{{u}}{% end %} {% end %}
+{%block feedurl %}{{baseurl}}/{{userOrAgency}}/{{id}}/feed{% end %}
+{% block alternateurl %}{{baseurl}}/{{userOrAgency}}/{{id}}/{% end %}
+{%block extrahead %}{% if agency.description %}<subtitle>{{agency.description}}</subtitle>{% end %}{% end %}

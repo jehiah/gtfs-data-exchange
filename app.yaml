@@ -28,7 +28,7 @@ handlers:
   login: admin
 
 - url: .*
-  script: main.py
+  script: gtfs_data_exchange.py
   
 skip_files: |
      

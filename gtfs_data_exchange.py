@@ -9,17 +9,20 @@ import wsgiref.handlers
 # application imports
 import app.admin
 import app.agencies
+import app.agency
 import app.api
 import app.basic
 import app.crawler
 import app.static
 import app.upload
+import uimethods
 
 class Application(tornado.wsgi.WSGIApplication):
     def __init__(self):
         app_settings = { 
             "template_path": os.path.join(os.path.dirname(__file__), "templates"),
-            "debug" : True
+            "debug" : True,
+            'ui_methods' : uimethods,
         }
         handlers = [
             (r"/(how-to-provide-open-data)$", app.static.StaticPage),

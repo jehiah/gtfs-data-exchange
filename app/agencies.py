@@ -1,6 +1,16 @@
 import app.basic
 import utils
 
+class MainPage(app.basic.BasePublicPage):
+    def get(self):
+        recentAgencies = utils.getRecentAgencies()
+        recentMessages = utils.getRecentMessages()
+        agency_count = utils.getAgencyCount()
+        
+        self.render('index.html', recentMessages=recentMessages,
+                                    recentAgencies=recentAgencies,
+                                    agency_count=agency_count)
+
 class Agencies(app.basic.BasePublicPage):
     def get(self):
         agencies = utils.get_all_agencies()
@@ -16,7 +26,7 @@ class Agencies(app.basic.BasePublicPage):
         grouped.sort()
         agency_count = utils.getAgencyCount()
         
-        self.render('templates/agencies.html', {'agencies':agencies, 'grouped_agencies':grouped, 'agency_count':agency_count})
+        self.render('agencies.html', {'agencies':agencies, 'grouped_agencies':grouped, 'agency_count':agency_count})
 
 class AgenciesByLocation(app.basic.BasePublicPage):
     def get(self):
@@ -26,7 +36,7 @@ class AgenciesByLocation(app.basic.BasePublicPage):
         agencies = [x[-1] for x in data]
         agency_count = utils.getAgencyCount()
         
-        self.render('templates/agencies_bylocation.html', {'agencies':agencies, 'agency_count':agency_count})
+        self.render('agencies_bylocation.html', {'agencies':agencies, 'agency_count':agency_count})
 
 class AgenciesByLastUpdate(app.basic.BasePublicPage):
     def get(self):
@@ -36,18 +46,12 @@ class AgenciesByLastUpdate(app.basic.BasePublicPage):
         agencies = [x[-1] for x in data]
         agency_count = utils.getAgencyCount()
         
-        self.render('templates/agencies_bylastupdate.html', {'agencies':agencies, 'agency_count':agency_count})
+        self.render('agencies_bylastupdate.html', {'agencies':agencies, 'agency_count':agency_count})
 
 class AgenciesAsTable(Agencies):
     def get(self):
         agencies = utils.get_all_agencies()
         agency_count = utils.getAgencyCount()
         
-        self.render('templates/agencies_astable.html', {'agencies':agencies, 'agency_count':agency_count})
+        self.render('agencies_astable.html', {'agencies':agencies, 'agency_count':agency_count})
 
-class MainPage(app.basic.BasePublicPage):
-    def get(self):
-        recentAgencies = utils.getRecentAgencies()
-        recentMessages = utils.getRecentMessages()
-        self.render('templates/index.html', {'recentMessages':recentMessages,
-                                        'recentAgencies':recentAgencies})

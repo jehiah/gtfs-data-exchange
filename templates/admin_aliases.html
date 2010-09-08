@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block rightsidebar %}
-{% endblock %}
+{% end %}
 
 
 {% block body %}
@@ -11,7 +11,7 @@
 
 {% if error %}
 <div class="error">{{error}}</div>
-{% endif %}
+{% end %}
 
 <fieldset>
 	<form action="/a/aliases" method="post">
@@ -20,7 +20,7 @@
 			<option value="">Select One ...</option>
 			{% for agency in agencies %}
 				<option value="{{agency.key}}">{{agency.name}}</option>
-			{% endfor %}
+			{% end %}
 		</select>
 		</label>
 		<br/>
@@ -30,7 +30,7 @@
 			<option value="">Select One ...</option>
 			{% for agency in agencies %}
 				<option value="{{agency.key}}">{{agency.name}}</option>
-			{% endfor %}
+			{% end %}
 		</select>
 		</label><br/>
 		
@@ -54,7 +54,7 @@
             {{alias.slug}} ({{alias.name}}) =&gt; {{alias.real_agency.slug}} ({{alias.real_agency.name}})<br/>
             <em>created on {{alias.date_aliased|date:"M dS Y H:i"}}Z</em>
         </li>
-    {% endfor %}
+    {% end %}
 </ul>
 
-{% endblock body %}
+{% end %}

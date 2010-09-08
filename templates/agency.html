@@ -6,10 +6,10 @@
 inputPane = document.getElementById("comments");
 </script>
 
-{% endblock footer_javascript %}
-{% block title %}GTFS Data Exchange - {{agency.name}}{% endblock title %}
+{% end %}
+{% block title %}GTFS Data Exchange - {{agency.name}}{% end %}
 
-{% block feedurl %}/agency/{{agency.slug}}/feed{% endblock feedurl %}
+{% block feedurl %}/agency/{{agency.slug}}/feed{% end %}
 {% block body %}
 
 <h2>
@@ -17,55 +17,55 @@ inputPane = document.getElementById("comments");
     <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available"  align="absbottom" vspace="3">
     {% else %}
     <img src="/static/star_grey.png" width="17" height="22" alt="No Offical GTFS Data Source Available" title="No Offical GTFS Data Source Available" align="absbottom" vspace="3">
-    {% endif %}
+    {% end %}
     
     {{agency.name}}</h2>
 
-<p><small>Last updated {{agency.lastupdate|timesince}} ago</small><br/>
-	{% if agency.url %}<a href="{{agency.url}}">{{agency.url}}</a><br/>{% endif %}
+<p><small>Last updated {{timesince(agency.lastupdate)}} ago</small><br/>
+	{% if agency.url %}<a href="{{agency.url}}">{{agency.url}}</a><br/>{% end %}
 	</p>
 
 {% if agency.location %}
 <p>Location: {{agency.location}}</p>
-{% endif %}
+{% end %}
 
 {% if agency.feed_baseurl %}
 <p>Official Feed Source: <a href="{{agency.feed_baseurl}}">{{agency.feed_baseurl}}</p>
-{% endif %}
+{% end %}
 
 {% if agency.license_url %}
 <p><a href="{{agency.license_url}}">License Agreement</a></p>
-{% endif %}
+{% end %}
 
 	<p>
 	    <img src="/static/feed.png"> <a href="/agency/{{agency.slug}}/feed">RSS of {{agency.name}} Updates</a><br/>
         Download the <a href="/agency/{{agency.slug}}/latest.zip">Latest GTFS File </a> <small><em>({{messages.0.message.filename}}) posted on {{messages.0.message.date|date:"D f dS"}}</em></small> 
 	</p>
 
-{% if current_userisadmin %}
+{% if current_user_is_admin %}
     <p><a href="/a/edit/{{agency.slug}}"><img src="/static/pencil.png"> Edit</a></p> 
-{% endif %}
+{% end %}
 
 {{agency.display_description}}
 
 <br clear="right"/>
 {% for msg in messages %}
 <div class="message">
-<p class="meta"><a href="/meta/{{msg.message.key.id}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% endif %} By <a href="/user/{{msg.message.user}}/">{{msg.message.user}}</a>  <small>on {{msg.message.date|date:"D F dS Y H:i"}} Z</small>
+<p class="meta"><a href="/meta/{{msg.message.key().id}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.message.user}}/">{{msg.message.user}}</a>  <small>on {{msg.message.date|date:"D F dS Y H:i"}} Z</small>
 	{% ifnotequal msg.message.agencies.__len__ 1 %}
 		<br/>also pertains to 
 		{% for a in msg.message.agencies %}
-			{% ifnotequal agency.slug a.slug %}<a href="{{a.link}}">{{a.name}}</a>{% endifnotequal %} 
-		{% endfor %} 
-	{% endifnotequal %}
+			{% ifnotequal agency.slug a.slug %}<a href="{{a.link}}">{{a.name}}</a>{% endnotequal %} 
+		{% end %} 
+	{% endnotequal %}
 	</p>
-<div class="content">{{msg.message.content|markdown}}</div>
+<div class="content">{{markdown(msg.message.content)}}</div>
 {% if msg.hasFile %}
-<p><a href="{{msg.message|gtfsurl}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.message.filename}}</a> {% if msg.message.size %}<span class="filesize">{{msg.message.size|filesizeformat}}</span>{% endif %} <a href="/meta/{{msg.message.key.id}}" title="permalink">more info &raquo;</a></p>
-{% endif %}
+<p><a href="{{msg.message.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.message.filename}}</a> {% if msg.message.size %}<span class="filesize">{{filesizeformat(msg.message.size)}}</span>{% end %} <a href="/meta/{{msg.message.key().id}}" title="permalink">more info &raquo;</a></p>
+{% end %}
 </div>
 
-{% endfor %}
+{% end %}
 
 
-{% endblock %}
+{% end %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Transit Agencies Providing GTFS Data{% endblock title %}
+{% block title %}Transit Agencies Providing GTFS Data{% end %}
 
 {% block footer_javascript %}
 
@@ -30,7 +30,7 @@ $(document).ready(function(){
 });
 </script>
 
-{% endblock %}
+{% end %}
 
 {% block body %}
 
@@ -54,24 +54,24 @@ $(document).ready(function(){
 <h4>{{data.0}}</h4>
 <ol class="agency_list">
     {% for agency in data.1 %}
-    <li class="{% if not agency.is_official %}un{% endif %}official">
+    <li class="{% if not agency.is_official %}un{% end %}official">
         {% if agency.is_official %}
         <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available" align="absbottom">
         {% else %}
         <img src="/static/star_grey.png" width="17" height="22" alt="No Offical GTFS Data Source Available" title="No Offical GTFS Data Source Available" align="absbottom">
-        {% endif %}
+        {% end %}
         
         <a href="{{agency.link}}"><strong>{{agency.name}}</strong></a> 
-        {% if agency.isnew %}<span class="new">New!</span>{% endif %}
-        {% if agency.recent %}<small>Last updated {{agency.lastupdate|timesince}} ago</small>{% endif %}
+        {% if agency.isnew %}<span class="new">New!</span>{% end %}
+        {% if agency.recent %}<small>Last updated {{timesince(agency.lastupdate)}} ago</small>{% end %}
     </li>
-    {% endfor %}
+    {% end %}
 </ol>
-{% endfor %}
+{% end %}
 
 <hr>
 {% include "include_official_flags_key.html" %}
 <hr>
 {% include "include_how_to_provide_open_data.html" %}
 
-{% endblock %}
+{% end %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Transit Agencies Providing GTFS Data - Table Format{% endblock title %}
+{% block title %}Transit Agencies Providing GTFS Data - Table Format{% end %}
 
 {% block footer_javascript %}
 
@@ -29,7 +29,7 @@ if (document.location.hash == '#filter_official') {
 }
 </script>
 
-{% endblock %}
+{% end %}
 
 
 
@@ -53,9 +53,9 @@ if (document.location.hash == '#filter_official') {
     
 <table class="datatable" celpadding="2" cellspacing="0">
 <tr>
-    {% if current_userisadmin %}
+    {% if current_user_is_admin %}
     <th>&nbsp;</th>
-    {% endif %}
+    {% end %}
     <th>Agency</th>
     <th>Location</th>
     <th>Feed Source</th>
@@ -63,24 +63,24 @@ if (document.location.hash == '#filter_official') {
     <th>Last Update</th>
 </tr>
 {% for agency in agencies %}
-<tr class="{% if not agency.is_official %}un{% endif %}official">
-    {% if current_userisadmin %}
+<tr class="{% if not agency.is_official %}un{% end %}official">
+    {% if current_user_is_admin %}
     <td><a href="/a/edit/{{agency.slug}}"><img src="/static/pencil.png"></a></td> 
-    {% endif %}
+    {% end %}
     <td>
         {% if agency.is_official %}
         <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available" align="absbottom">
         {% else %}
         <img src="/static/star_grey.png" width="17" height="22" alt="No Offical GTFS Data Source Available" title="No Offical GTFS Data Source Available" align="absbottom">
-        {% endif %}
+        {% end %}
         
-        <a href="{{agency.link}}">{{agency.name}}</a>{% if agency.isnew %}<span class="new">New!</span>{% endif %}</td>
+        <a href="{{agency.link}}">{{agency.name}}</a>{% if agency.isnew %}<span class="new">New!</span>{% end %}</td>
     <td>{{agency.location}}</td>
     <td><a href="{{agency.feed_baseurl}}">{{agency.feed_baseurl}}</a></td>
-    <td>{% if agency.license_url %}<a href="{{agency.license_url}}">License Agreement</a>{% endif %}</td>
+    <td>{% if agency.license_url %}<a href="{{agency.license_url}}">License Agreement</a>{% end %}</td>
     <td>{{agency.lastupdate|date:"M-d-y"}}</td>
 </tr>
-{% endfor %}
+{% end %}
 </table>
 
 <hr>
@@ -91,4 +91,4 @@ if (document.location.hash == '#filter_official') {
 
 
 
-{% endblock %}
+{% end %}

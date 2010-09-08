@@ -1,9 +1,8 @@
-import webapp as webapp2
-from google.appengine.ext.webapp import template
 from google.appengine.api import users
-from django.utils import simplejson as json
-import os
+
+import tornado.web
 import logging
+
 import csv
 import cStringIO
 
@@ -12,10 +11,8 @@ from functools import wraps
 def login_required(method):
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        user = users.get_current_user()
-        if not user:
-            self.redirect(users.create_login_url(self.request.uri))
-            return
+        if not self.current_user:
+            self.redirect(self.get_login_url())
         else:
             return method(self, *args, **kwargs)
     return wrapper
@@ -24,74 +21,52 @@ def login_required(method):
 def admin_required(method):
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        user = users.get_current_user()
-        if not user:
-            self.redirect(users.create_login_url(self.request.uri))
-            return
+        if not self.current_user:
+            self.redirect(self.get_login_url())
         elif not users.is_current_user_admin():
-            return self.error(403)
+            raise tornado.web.HTTPError(403)
         else:
             return method(self, *args, **kwargs)
     return wrapper
 
-class BaseController(webapp2.RequestHandler):
-    def __init__(self):
-        current_userisadmin = False
-        if users.get_current_user() and users.is_current_user_admin():
-            current_userisadmin = True
-        self.template_vals = { 'current_userisadmin':current_userisadmin}
-    
-    # def __before__(self, *args):
-    #     pass
-    #
-    # def __after__(self, *args):
-    #     pass
+class BaseController(tornado.web.RequestHandler):
     def head(self):
-        self.response.headers['Allow'] = 'GET'
-        return self.error(405)
+        self.set_header("Allow", "GET")
+        raise tornado.web.HTTPError(405)
     
-    def errorb(self, errorcode, message='an error occured'):
-        if errorcode == 404:
-            message = 'Sorry, we were not able to find the requested page.  We have logged this error and will look into it.'
-        elif errorcode == 403:
-            message = 'Sorry, that page is reserved for administrators.  '
-        elif errorcode == 500:
-            message = "Sorry, the server encountered an error.  We have logged this error and will look into it."
-        return self.render('templates/error.html', {'message':message})
+    # def errorb(self, errorcode, message='an error occured'):
+    #     if errorcode == 404:
+    #         message = 'Sorry, we were not able to find the requested page.  We have logged this error and will look into it.'
+    #     elif errorcode == 403:
+    #         message = 'Sorry, that page is reserved for administrators.  '
+    #     elif errorcode == 500:
+    #         message = "Sorry, the server encountered an error.  We have logged this error and will look into it."
+    #     return self.render('error.html', {'message':message})
     
-    def render(self, template_file, template_vals={}):
-        """
-        Helper method to render the appropriate template
-        """
-        if users.get_current_user():
-            url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
-        else:
-            url = users.create_login_url(self.request.uri)
-            url_linktext = 'Login'
-        self.production = self.request.url.find('www.gtfs-data-exchange.com')!= -1
-        template_vals.update({'url':url,
-                             'url_linktext':url_linktext,
-                             'user':users.get_current_user(),
-                             'production':self.production})
-        template_vals.update(self.template_vals)
-        path = os.path.join(os.path.join(os.path.dirname(__file__), '..'), template_file)
-        self.response.out.write(template.render(path, template_vals))
-
+    def get_login_url(self):
+        return users.create_login_url(self.request.full_url())
+    
+    def get_current_user(self):
+        return users.get_current_user()
+    
+    def render_string(self, template_name, **kwargs):
+        args = dict(
+            sign_in_out_url = self.current_user and  users.create_logout_url(self.request.full_url()) or users.create_login_url(self.request.full_url()),
+            sign_in_out_text = self.current_user and 'Sign In' or 'Sign Out',
+            production = self.request.host == 'www.gtfs-data-exchange.com',
+            current_user_is_admin = self.current_user and users.is_current_user_admin(),
+        )
+        args.update(kwargs)
+        return super(BaseController, self).render_string(template_name, **args)
 
 class BasePublicPage(BaseController):
     """
     Do all the common public page prep such as nav pages etc
     """
-    def __before__(self, *args):
-        self.production = self.request.url.find('www.gtfs-data-exchange.com')!= -1
-        self.template_vals.update({'baseurl':self.request.url[:self.request.url.find('/', 7)]})
+    # def __before__(self, *args):
+    #     self.template_vals.update({'baseurl':self.request.url[:self.request.url.find('/', 7)]})
 
-class BaseAPIPage(webapp2.RequestHandler):
-    def head(self):
-        self.response.headers['Allow'] = 'GET'
-        return self.error(405)
-    
+class BaseAPIPage(BaseController):
     def get(self):
         self.api_error(500, "UNKNOWN_ERROR")
     
@@ -104,7 +79,7 @@ class BaseAPIPage(webapp2.RequestHandler):
     def api_response(self, data, status_code=200, status_txt="OK"):
         # logging.info('returning %s' % data)
 
-        if self.request.GET.get('format', None) == 'csv':
+        if self.get_argument('format', None) == 'csv':
             assert isinstance(data, (list, tuple))
             buffer = cStringIO.StringIO()
             csvwriter = csv.writer(buffer)
@@ -114,8 +89,8 @@ class BaseAPIPage(webapp2.RequestHandler):
                 # be sure to output data in the same order as the headers
                 row_data = [_utf8(unicode(row[key])) for key in headers]
                 csvwriter.writerow(row_data)
-            self.response.headers['Content-type'] = 'text/csv'
-            self.response.out.write(buffer.getvalue())
+            self.set_header("Content-type", 'text/csv')
+            self.finish(buffer.getvalue())
             return
             
         out_data = {
@@ -123,15 +98,15 @@ class BaseAPIPage(webapp2.RequestHandler):
             'status_txt':status_txt,
             'data':data
         }
-        callback = self.request.GET.get('callback', None)
+        callback = self.get_argument('callback', None)
         if callback:
-            self.response.headers['Content-type'] = 'application/jsonp'
-            self.response.out.write(callback+'(')
-            self.response.out.write(json.dumps(out_data))
-            self.response.out.write(')')
+            self.set_header("Content-type", 'application/jsonp')
+            self.write(callback+'(')
+            self.write(out_data)
+            self.finish(')')
         else:
-            self.response.headers['Content-type'] = 'application/javascript'
-            self.response.out.write(json.dumps(out_data))
+            self.set_header("Content-type", 'application/javascript')
+            self.finish(out_data)
 
 def _utf8(value):
     if value is None:

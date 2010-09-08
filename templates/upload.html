@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Upload GTFS File{% endblock title %}
+{% block title %}Upload GTFS File{% end %}
 {% block footer_javascript %} 
 <script src="/static/showdown.js" language="javascript"></script>
 <script src="/static/showdown-gui.js" language="javascript"></script>
 
-{% endblock footer_javascript %}
+{% end %}
 
 
-{% block rightsidebar %}{% endblock %}
+{% block rightsidebar %}{% end %}
 {% block body %}
 
 <h3>Upload GTFS File</h3>
 <p>Comments and GTFS File will automatically be linked to the agency/agencies listed in agency.txt</p>
 
-<form action="https://gtfs{%if not production %}-devel{%endif %}.s3.amazonaws.com/" method="post" enctype="multipart/form-data">
+<form action="https://gtfs{%if not production %}-devel{%end %}.s3.amazonaws.com/" method="post" enctype="multipart/form-data">
   <input type="hidden" name="key" value="queue/{{nextkey}}">
   <input type="hidden" name="AWSAccessKeyId" value="1TRQ62N38DB2SJ7JZT02"> 
   <input type="hidden" name="acl" value="private"> 
@@ -45,4 +45,4 @@ Uploads will be queued for processing, and will be published within minutes.<br/
 </div>
 
 
-{% endblock %}
+{% end %}

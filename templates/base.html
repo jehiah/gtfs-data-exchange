@@ -1,15 +1,15 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head >
-    <title>{% block title %}GTFS Data Exchange{% endblock %}</title>
+    <title>{% block title %}GTFS Data Exchange{% end %}</title>
     <link rel="stylesheet" href="/static/style.css" type="text/css" media="all" />
-	<link rel="alternate" type="application/rss+xml" title="Atom" href="{% block feedurl %}/feed{% endblock feedurl %}" />
+	<link rel="alternate" type="application/rss+xml" title="Atom" href="{% block feedurl %}/feed{% end %}" />
 </head>
 <body>
 
 <div id="container">
 <div id="dashboard">
-        <!-- <a href="/feed" title="Subscribe to {{ blog.title }} RSS feed">Subscribe to the feed <img src="/static/images/feed-icon-16x16.png" width="16" height="16" border="0" title="Subscribe to Blog's RSS feed" alt="RSS"/></a> -->
+
 </div>
 
 <div id="header">
@@ -18,21 +18,21 @@
 <div id="nav">
     <div id="usernav">
     <a href="/upload" >Upload GTFS File</a> <span class="pipe">|</span>
-    {% if current_userisadmin %}
+    {% if current_user_is_admin %}
     <a href="/a/">Admin</a> <span class="pipe">|</span>
-    {% endif %}
-    <a href="{{url}}" >{{url_linktext}}</a> 
+    {% end %}
+    <a href="{{sign_in_out_url}}" >{{sign_in_out_text}}</a> 
     </div>
     <a href="/agencies">All Agencies</a> <span class="pipe">|</span>
     <a href="/">Recent Updates</a> 
 </div>
 
 <div id="body">
-{% block featured %}{% endblock %}
-{% block topmenu %}{% endblock %}
+{% block featured %}{% end %}
+{% block topmenu %}{% end %}
 {% block rightsidebar %}
-{% endblock %}
-{% block body %}{% endblock body %} 
+{% end %}
+{% block body %}{% end %} 
 <div class="clear"></div>
 
 </div>
@@ -67,9 +67,9 @@ document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.
 var pageTracker = _gat._getTracker("UA-75594-6");
 pageTracker._trackPageview();
 </script>
-{% endif %}
+{% end %}
 
-{% block footer_javascript %}{% endblock %}
+{% block footer_javascript %}{% end %}
 
 
 <script type="text/javascript">

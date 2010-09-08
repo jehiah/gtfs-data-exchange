@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block rightsidebar %}
-{% endblock %}
+{% end %}
 
 
 {% block body %}
@@ -10,7 +10,7 @@
 
 {% if error %}
 <div class="error">{{error}}</div>
-{% endif %}
+{% end %}
 
 <fieldset>
 	<form action="/a/edit/{{agency.slug}}" method="post">
@@ -31,8 +31,8 @@
 		</label><br/>
         
         Official Data: 
-            <label><input type="radio" name="official" value="1" {% if agency.is_official %}checked{% endif %}>Available</label>
-            <label><input type="radio" name="official" value="0" {% if not agency.is_official %}checked{% endif %}>Not Available</label><br/>
+            <label><input type="radio" name="official" value="1" {% if agency.is_official %}checked{% end %}>Available</label>
+            <label><input type="radio" name="official" value="0" {% if not agency.is_official %}checked{% end %}>Not Available</label><br/>
 
 		<input type="submit" name="action.save" value="Save">
 	</form>
@@ -44,17 +44,17 @@
 <form action="/a/edit/{{agency.slug}}" method="post">
 	<input type="hidden" name="orig_url" value="{{u.url}}">
 	<fieldset>
-        <small>last crawled {{u.lastcrawled|timesince}} ago</small><br/>
+        <small>last crawled {{timesince(u.lastcrawled)}} ago</small><br/>
 		<label>URL:<input type="text" name="url" size="100" value="{{u.url}}"/></label><br/>
 		<label>Recurse:<input type="text" name="recurse" size="5"value="{{u.recurse}}"></label><br/>
 		<label>download as:<input type="text" name="download_as" size="45"value="{{u.download_as}}"></label><br/>
-		<label>show url:<input type="checkbox" name="show_url" value="True" {% if u.show_url %} checked {% endif %}></label><br/>
+		<label>show url:<input type="checkbox" name="show_url" value="True" {% if u.show_url %} checked {% end %}></label><br/>
 		<label>post text:<input type="text" name="post_text" value="{{u.post_text}}" size="100"></label><br/>
 		<input type="submit" name="action.save.url" value="save"><br/>
 	</fieldset>
 </form>
 <!-- TODO: show status of this crawl. has it been 404'ing? 304? redirect? -->
-{% endfor %}
+{% end %}
 
 <p>New Crawl URL:</p>
 <form action="/a/edit/{{agency.slug}}" method="post">
@@ -68,4 +68,4 @@
 	</fieldset>
 </form>
 
-{% endblock body %}
+{% end %}

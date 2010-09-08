@@ -63,9 +63,11 @@ class Agency(db.Model):
     def rfc3339(self):
         return rfc3339(self.lastupdate)
 
+    @property
     def link(self):
         return "/agency/%s/" % self.slug
-        
+    
+    @property
     def location(self):
         d = []
         for x in [self.area_name, self.state_name, self.country_name]:
@@ -103,6 +105,7 @@ class Message(db.Model):
     md5sum = db.StringProperty(multiline=False)
     size = db.IntegerProperty()
 
+    @property
     def agencies(self):
         a = getattr(self,'_agencies',None)
         #logging.debug('getattr' + str(a))
@@ -128,7 +131,7 @@ class Message(db.Model):
     def rfc3339(self):
         return rfc3339(self.date)
 
-    def filelink(self,production=None):
+    def filelink(self, production=None):
         if not self.hasFile:
             return ''
         if production == True:
@@ -139,7 +142,7 @@ class Message(db.Model):
             return "/gtfs/"+ (self.filename or '')
     
     def json(self):
-        agencies = [x.slug for x in self.agencies()]
+        agencies = [x.slug for x in self.agencies]
         return dict(
             filename=self.filename,
             agencies=agencies,

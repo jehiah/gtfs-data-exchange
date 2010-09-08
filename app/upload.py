@@ -112,7 +112,7 @@ class UploadFile(app.basic.BasePublicPage):
             signature="C2wGDUj7kyN1bJ+jhLc662iZsXc="
         randstring = ''.join([random.choice(string.letters+string.digits) for x in range(20)])
         nextkey = str(datetime.datetime.now())+'-'+randstring+'.zip'
-        self.render('templates/upload.html', {'policy':policy, 'signature':signature, 'nextkey':nextkey.replace(' ', '-')})
+        self.render('upload.html', {'policy':policy, 'signature':signature, 'nextkey':nextkey.replace(' ', '-')})
     
     @app.basic.login_required
     def post(self):
@@ -120,20 +120,20 @@ class UploadFile(app.basic.BasePublicPage):
             self.error(400)
             self.response.out.write("file not specified!")
             return
-        if (self.request.POST.get('upload_file', None) is None or
-           not self.request.POST.get('upload_file', None).filename):
+        if (self.get_argument('upload_file', None) is None or
+           not self.get_argument('upload_file', None).filename):
             self.error(400)
             self.response.out.write("file not specified!")
             return
         
-        name = self.request.POST.get('upload_file').filename
+        name = self.get_argument('upload_file').filename
         logging.info('upload file name ' + str(name))
         
-        filedata = self.request.POST.get('upload_file').file.read()
-        contentType = self.request.POST.get('upload_file').type ## check that it's zip!
+        filedata = self.get_argument('upload_file').file.read()
+        contentType = self.get_argument('upload_file').type ## check that it's zip!
         
         try:
-            redirect_url = uploadfile(username=users.get_current_user(), filename=name, filedata=filedata, contentType=contentType, comments=self.request.POST.get('comments', ''))
+            redirect_url = uploadfile(username=users.get_current_user(), filename=name, filedata=filedata, contentType=contentType, comments=self.get_argument('comments', ''))
         except UploadError, e:
             self.error(400)
             return self.response.out.write(e.msg)
@@ -143,9 +143,9 @@ class UploadFile(app.basic.BasePublicPage):
 class QueuePage(app.basic.BasePublicPage):
     #@app.basic.login_required
     def get(self):
-        if not self.request.GET.get('key', '') or not self.request.GET.get('bucket', '').startswith('gtfs'):
+        if not self.get_argument('key', '') or not self.get_argument('bucket', '').startswith('gtfs'):
             return self.redirect('/upload')
-        self.render('templates/queue.html')
+        self.render('queue.html')
 
 
 
@@ -167,4 +167,4 @@ class ZipFilePage(app.basic.BasePublicPage):
         if f:
             return self.redirect(f.filelink(production=production))
         else:
-            return self.error(404)
+            raise tornado.web.HTTPError(404)

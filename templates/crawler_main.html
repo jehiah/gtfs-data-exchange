@@ -13,16 +13,16 @@
 		<input type="hidden" name="orig_url" value="{{u.url}}">
 		<fieldset>
 			URL:{{u.url}}<br/>
-			<small>last crawled {{u.lastcrawled|timesince}} ago</small><br/>
+			<small>last crawled {{timesince(u.lastcrawled)}} ago</small><br/>
 			Recurse:{{u.recurse}}<br/>
 			download as:{{u.download_as}}<br/>
-			show url:{% if u.show_url %} True {% else %} False {% endif %}<br/>
-			{% if u.post_text %} post text:{{u.post_text}}<br/>{% endif %}
+			show url:{% if u.show_url %} True {% else %} False {% end %}<br/>
+			{% if u.post_text %} post text:{{u.post_text}}<br/>{% end %}
     		<select name="link">
     		    <option value="">Link to ...</option>
     		    {% for agency in agencies %}
     		        <option value="{{agency.slug}}">{{agency.name}} - {{agency.location}}</option>
-    		    {% endfor %}
+    		    {% end %}
     		</select>
     		<button type="submit">Link</button>
 
@@ -30,9 +30,9 @@
 	</form>
 	
 </li>
-{% endfor %}
+{% end %}
 </ul>
-{% endif %}
+{% end %}
 
 </body>
 </html>

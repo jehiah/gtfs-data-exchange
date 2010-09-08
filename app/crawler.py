@@ -17,7 +17,7 @@ def crawler_required(method):
         logging.info('auth = ' + str(auth))
         if auth != 'Basic Y3Jhd2xlcjpjcmF3bGVy': ## crawler, crawler
             self.response.headers['WWW-Authenticate'] = 'Basic realm="RESTRICTED ACCESS"'
-            return self.error(401)
+            raise tornado.web.HTTPError(401)
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -28,13 +28,13 @@ class CrawlerMain(app.basic.BaseController):
         crawlurls = model.CrawlBaseUrl.all().order('lastcrawled').fetch(1000)
         crawlurls = [x for x in crawlurls if not x.agency] # filter out the ones linked to an agency since we can't do that in a filter()
         agencies = utils.get_all_agencies()
-        self.render('templates/crawler_main.html', {'crawlurls':crawlurls, 'agencies':agencies})
+        self.render('crawler_main.html', {'crawlurls':crawlurls, 'agencies':agencies})
     
     def post(self):
-        url = self.request.POST.get('orig_url')
-        if self.request.POST.get('link'):
+        url = self.get_argument('orig_url')
+        if self.get_argument('link'):
             # link this to an agency
-            agency = utils.get_agency(self.request.POST.get('link'))
+            agency = utils.get_agency(self.get_argument('link'))
             c = model.CrawlBaseUrl().all().filter('url =', url).get()
             c.agency = agency
             c.put()
@@ -45,18 +45,18 @@ class CrawlerMain(app.basic.BaseController):
         else:
             c = model.CrawlBaseUrl()
             c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
-        c.url = self.request.POST.get('url')
-        c.recurse = int(self.request.POST.get('recurse'))
-        c.download_as = self.request.POST.get('download_as', 'gtfs-archiver')
-        c.show_url = self.request.POST.get('show_url', True) == 'True'
-        c.post_text = self.request.POST.get('post_text', '')
+        c.url = self.get_argument('url')
+        c.recurse = int(self.get_argument('recurse'))
+        c.download_as = self.get_argument('download_as', 'gtfs-archiver')
+        c.show_url = self.get_argument('show_url', True) == 'True'
+        c.post_text = self.get_argument('post_text', '')
         c.put()
         self.redirect('/crawl')
 
 class CrawlNextUrl(app.basic.BaseController):
     @crawler_required
     def get(self):
-        if self.request.GET.get('timeframe', ''):
+        if self.get_argument('timeframe', ''):
             d = datetime.datetime.now() - datetime.timedelta(minutes=30)
         else:
             d = datetime.datetime.now() - datetime.timedelta(hours=12)
@@ -72,7 +72,7 @@ class CrawlNextUrl(app.basic.BaseController):
 class CrawlHeaders(app.basic.BaseController):
     @crawler_required
     def get(self):
-        url = self.request.GET.get('url', '')
+        url = self.get_argument('url', '')
         c = model.CrawlUrl.all().filter('url =', url).order('-lastseen').get()
         if not c:
             return self.response.out.write('NONE')
@@ -80,7 +80,7 @@ class CrawlHeaders(app.basic.BaseController):
     
     @crawler_required
     def post(self):
-        url = self.request.POST.get('url', '')
+        url = self.get_argument('url', '')
         c = model.CrawlUrl()
         c.url = url
         c.headers = self.request.POST['headers']
@@ -90,7 +90,7 @@ class CrawlHeaders(app.basic.BaseController):
 class CrawlShouldSkip(app.basic.BaseController):
     @crawler_required
     def get(self):
-        url = self.request.GET.get('url', '')
+        url = self.get_argument('url', '')
         c= model.CrawlSkipUrl.all().filter('url =', url).get()
         if c:
             c.lastseen = datetime.datetime.now()
@@ -119,7 +119,7 @@ class CrawlUndoLastRun(app.basic.BaseController):
 class CrawlUpload(app.basic.BaseController):
     @crawler_required
     def get(self):
-        md5sum = self.request.GET.get('md5sum', '')
+        md5sum = self.get_argument('md5sum', '')
         if md5sum and model.Message.all().filter('md5sum =', md5sum).count() >0:
             self.response.out.write('FOUND')
         elif md5sum and model.SkipMd5.all().filter('md5sum =', md5sum).count() >0:
@@ -130,11 +130,11 @@ class CrawlUpload(app.basic.BaseController):
     ## don't require crawler here so we don't have to double post
     def post(self):
         ## file is in upload_file
-        agencydata = self.request.POST.get('agencydata')
-        comments = self.request.POST.get('comments')
-        username = users.User(self.request.POST.get('user'))
-        md5sum = self.request.POST.get('md5sum')
-        sizeoffile = int(self.request.POST.get('sizeoffile'))
+        agencydata = self.get_argument('agencydata')
+        comments = self.get_argument('comments')
+        username = users.User(self.get_argument('user'))
+        md5sum = self.get_argument('md5sum')
+        sizeoffile = int(self.get_argument('sizeoffile'))
         try:
             filename = uploadfile(username=username, agencydata=agencydata, comments=comments, md5sum=md5sum, sizeoffile=sizeoffile)
         except UploadError, e:

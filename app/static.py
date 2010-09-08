@@ -5,20 +5,20 @@ import app.basic
 
 class StaticPage(app.basic.BasePublicPage):
     def get(self, template_name):
-        self.render('templates/' + template_name + '.html')
+        self.render('' + template_name + '.html')
 
 class SubmitFeedPage(StaticPage):
     # get will work automagically
     def post(self, template_name):
         ## send an email; render "thank you"
 
-        feed_location = self.request.POST.get('feed_location')
+        feed_location = self.get_argument('feed_location')
         if not feed_location:
-            return self.render('templates/generic.html', {'error':'Feed Location is required'})
+            return self.render('generic.html', {'error':'Feed Location is required'})
 
-        agency_name = self.request.POST.get('agency_name')
-        agency_location = self.request.POST.get('agency_location')
-        contact_info = self.request.POST.get('contact_info')
+        agency_name = self.get_argument('agency_name')
+        agency_location = self.get_argument('agency_location')
+        contact_info = self.get_argument('contact_info')
         if users.get_current_user():
             user = users.get_current_user().email()
         else:
@@ -41,4 +41,4 @@ Logged In User: %(user)s
         'user' : user
         })
 
-        self.render('templates/generic.html', {'message':'Thank You For Your Submission'})
+        self.render('generic.html', {'message':'Thank You For Your Submission'})

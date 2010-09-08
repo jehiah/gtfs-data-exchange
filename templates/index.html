@@ -3,10 +3,9 @@
 {% block body %}
 <h3>New Agencies</h3>
 <p> 
-    {% for agency in recentAgencies %}
-    {{agency}}
-    <a href="{{agency.link}}">{{agency.name}}</a>  <small>({{agency.lastupdate|timesince}} ago)</small>{% if not forloop.last %},{% endif %}
-    {% endfor %}
+    {% for i, agency in enumerate(recentAgencies) %}
+    {% if i > 0 %},{% end %} {{agency}}<a href="{{agency.link}}">{{agency.name}}</a>  <small>({{timesince(agency.lastupdate)}} ago)</small>{% end %}
+
     (<strong><a href="/agencies">View All {{agency_count}} Agencies</a></strong>)
 
 </p>
@@ -20,21 +19,21 @@
 
 {% for msg in recentMessages %}
 <div class="message">
-<p class="meta"><a href="/meta/{{msg.key.id}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% endif %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a>  <small>{{msg.date|timesince}} ago</small>
+<p class="meta"><a href="/meta/{{msg.key().id}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a>  <small>{{timesince(msg.date)}} ago</small>
 		<br/>pertains to
 		{% for a in msg.agencies %}
 			<a href="{{a.link}}">{{a.name}}</a>
-		{% endfor %} 
+		{% end %} 
 	</p>
-<div class="content">{{msg.content|markdown}}</div>
+<div class="content">{{markdown(msg.content)}}</div>
 
 {% if msg.hasFile %}
-<p><a href="{{msg|gtfsurl}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{msg.size|filesizeformat}}</span>{% endif %} <a href="/meta/{{msg.key.id}}" title="permalink">more info &raquo;</a> </p>
-{% endif %}
+<p><a href="{{msg.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{filesizeformat(msg.size)}}</span>{% end %} <a href="/meta/{{msg.key().id}}" title="permalink">more info &raquo;</a> </p>
+{% end %}
 </div>
-{% endfor %}
+{% end %}
 
 
-{% endif %}
+{% end %}
 
-{% endblock body %}
+{% end %}

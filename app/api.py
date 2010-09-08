@@ -6,7 +6,7 @@ import model
 class APIAgencyPage(app.basic.BaseAPIPage):
     def get(self, slug=None):
         if not slug:
-            slug = self.request.GET.get('agency', None)
+            slug = self.get_argument('agency', None)
         
         if not slug:
             return self.api_error(404, 'MISSING_ARG_AGENCY')
