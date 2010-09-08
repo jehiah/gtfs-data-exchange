@@ -2,302 +2,43 @@
 
 import wsgiref.handlers
 from google.appengine.ext.webapp import template
-from google.appengine.ext import db
-from google.appengine.api import users
-from google.appengine.api import memcache
-from google.appengine.api import mail
 
 import webapp as webapp2
-import model
-import datetime
-import logging
-import utils
-from django.core.paginator import ObjectPaginator
 
 # app imports
+import app.agencies
+import app.agency
 import app.basic
 import app.crawler
 import app.upload
 import app.admin
 import app.api
-
-class StaticPage(app.basic.BasePublicPage):
-    def get(self):
-        self.render('views/'+ self.request.uri.split('/')[-1] + '.html')
-
-class SubmitFeedPage(StaticPage):
-    # get will work automagically
-    def post(self):
-        ## send an email; render "thank you"
-        
-        feed_location = self.request.POST.get('feed_location')
-        if not feed_location:
-            return self.render('views/generic.html', {'error':'Feed Location is required'})
-        
-        agency_name = self.request.POST.get('agency_name')
-        agency_location = self.request.POST.get('agency_location')
-        contact_info = self.request.POST.get('contact_info')
-        if users.get_current_user():
-            user = users.get_current_user().email()
-        else:
-            user = ''
-        
-        if not user and not agency_name and not agency_location and not contact_info:
-            return self.render('views/generic.html', {'error':'Agency Name required'})
-        
-        mail.send_mail(sender="Jehiah Czebotar <jehiah@gmail.com>",
-                      to="Jehiah Czebotar <jehiah@gmail.com>",
-                      subject="New GTFS Feed - %s" % (agency_name or feed_location),
-                      body="""
-Feed URL: %(feed_location)s
-Agency Name: %(agency_name)s
-Agency Location: %(agency_location)s
-Point of Contact: %(contact_info)s
-Logged In User: %(user)s
-        """ % {
-        'agency_name' : agency_name,
-        'agency_location' : agency_location,
-        'contact_info' : contact_info,
-        'feed_location' : feed_location,
-        'user' : user
-        })
-        
-        self.render('views/generic.html', {'message':'Thank You For Your Submission'})
-
-
-class RedirectAgencyList(app.basic.BasePublicPage):
-    def get(self):
-        self.redirect('/agencies')
-
-class Agencies(app.basic.BasePublicPage):
-    def get(self):
-        agencies = utils.get_all_agencies()
-        
-        grouped = {}
-        for agency in agencies:
-            letter = agency.name[0].upper()
-            if letter not in grouped:
-                grouped[letter] = []
-            grouped[letter].append(agency)
-        
-        grouped = grouped.items()
-        grouped.sort()
-        agency_count = utils.getAgencyCount()
-        
-        self.render('views/agencies.html', {'agencies':agencies, 'grouped_agencies':grouped, 'agency_count':agency_count})
-
-class AgenciesByLocation(app.basic.BasePublicPage):
-    def get(self):
-        agencies = utils.get_all_agencies()
-        data = [[agency.country_name, agency.state_name, agency.name, agency] for agency in agencies]
-        data.sort()
-        agencies = [x[-1] for x in data]
-        agency_count = utils.getAgencyCount()
-        
-        self.render('views/agencies_bylocation.html', {'agencies':agencies, 'agency_count':agency_count})
-
-class AgenciesByLastUpdate(app.basic.BasePublicPage):
-    def get(self):
-        agencies = utils.get_all_agencies()
-        data = [[agency.lastupdate, agency] for agency in agencies]
-        data.sort(reverse=True)
-        agencies = [x[-1] for x in data]
-        agency_count = utils.getAgencyCount()
-        
-        self.render('views/agencies_bylastupdate.html', {'agencies':agencies, 'agency_count':agency_count})
-
-class AgenciesAsTable(Agencies):
-    def get(self):
-        agencies = utils.get_all_agencies()
-        agency_count = utils.getAgencyCount()
-        
-        self.render('views/agencies_astable.html', {'agencies':agencies, 'agency_count':agency_count})
-
-class MainPage(app.basic.BasePublicPage):
-    def get(self):
-        recentAgencies = utils.getRecentAgencies()
-        recentMessages = utils.getRecentMessages()
-        self.render('views/index.html', {'recentMessages':recentMessages,
-                                        'recentAgencies':recentAgencies})
-
-class CommentPage(app.basic.BasePublicPage):
-    def get(self, key=None):
-        if not key:
-            return self.error(404)
-        if not key.isdigit():
-            try:
-                obj = db.get(db.Key(key))
-                return self.redirect('/meta/%d' % obj.key().id())
-            except:
-                logging.exception('key not found %s' % key)
-                return self.error(404)
-        
-        try:
-            obj = model.Message.get_by_id(int(key))
-            # obj = db.get(db.Key(key))
-        except:
-            logging.exception('key not found %s' % key)
-            return self.error(404)
-        if not obj:
-            return self.error(404)
-        self.render('views/comment.html', {'msg':obj})
-
-class CommentAdminPage(app.basic.BasePublicPage):
-    @app.basic.admin_required
-    def get(self, key=None):
-        if not key:
-            return self.error(404)
-        try:
-            obj = db.get(db.Key(key))
-        except:
-            return self.error(404)
-        if not obj:
-            return self.error(404)
-        self.render('views/comment_admin.html', {'msg':obj})
-    @app.basic.admin_required
-    def post(self, key=None):
-        try:
-            obj = db.get(db.Key(key))
-        except:
-            return self.error(404)
-        obj.content = self.request.POST.get('comments', obj.content)
-        obj.put()
-        self.redirect('/meta/%d' % obj.key().id())
-
-
-class QueuePage(app.basic.BasePublicPage):
-    #@app.basic.login_required
-    def get(self):
-        if not self.request.GET.get('key', '') or not self.request.GET.get('bucket', '').startswith('gtfs'):
-            return self.redirect('/upload')
-        self.render('views/queue.html')
-
-
-class FeedPage(app.basic.BasePublicPage):
-    def get(self, userOrAgency=None, id=None):
-        context = {'userOrAgency':userOrAgency, 'u':id, 'id':id}
-        self.response.headers['Content-Type'] = 'application/atom+xml'
-        if not userOrAgency:
-            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(30)).order('-date').fetch(25)
-            self.render('views/atom.xml', context)
-        elif userOrAgency == 'user':
-            import urllib
-            user = urllib.unquote(id)
-            if '@' in user:
-                u = users.User(user)
-            else:
-                u = users.User(user+'@gmail.com')
-            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(30)).filter('user =', u).order('-date').fetch(25)
-            self.render('views/agency_atom.xml', context)
-        elif userOrAgency == 'agency':
-            s = utils.lookup_agency_alias(id)
-            if s:
-                return self.redirect('/%s/%s/feed' % (userOrAgency, s))
-            
-            agency = model.Agency.all().filter('slug =', id).get()
-            context['agency'] = agency
-            context['messages'] = [x.message for x in model.MessageAgency.all().filter('agency =', agency).filter('date >', datetime.datetime.now()-datetime.timedelta(30)).order('-date').fetch(25)]
-            self.render('views/agency_atom.xml', context)
-
-class UserPage(app.basic.BasePublicPage):
-    def get(self, user):
-        import urllib
-        user = urllib.unquote(user)
-        if '@' in user:
-            u = users.User(user)
-        else:
-            u = users.User(user+'@gmail.com')
-        messages= model.Message.all().filter('user =', u).order('-date').fetch(1000)
-        
-        if not messages and not users.get_current_user():
-            return self.error(404)
-        if not messages and users.get_current_user().email() != u.email():
-            return self.error(404)
-        
-        paginator = ObjectPaginator(messages, 15, 1)
-        try:
-            page = int(self.request.GET.get('page', '1'))
-        except ValueError:
-            page = 1
-        
-        try:
-            records = paginator.get_page(page-1)
-        except:
-            records = paginator.get_page(0)
-            page = 1
-        self.render('views/user.html', {'u':u, 'messages':records, 'paginator':paginator,
-        "next" : paginator.has_next_page(page-1), 'previous':paginator.has_previous_page(page-1), 'previous_page_number':page-1, 'next_page_number':page+1, "page" : page})
-
-class LatestAgencyFile(app.basic.BasePublicPage):
-    def get(self, slug):
-        s = utils.lookup_agency_alias(slug)
-        if s:
-            return self.redirect('/agency/%s/' % (s))
-        agency = utils.get_agency(slug)
-        if not agency:
-            return self.error(404)
-        message =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1)
-        if message:
-            return self.redirect(message[0].message.filelink())
-        return self.error(404)
-
-
-class AgencyPage(app.basic.BasePublicPage):
-    def get(self, slug):
-        s = utils.lookup_agency_alias(slug)
-        if s:
-            return self.redirect('/agency/%s/' % (s))
-        
-        agency = utils.get_agency(slug)
-        if not agency:
-            return self.error(404)
-        messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1000)
-        self.render('views/agency.html', {'agency':agency, 'messages':messages})
-
-
-class ZipFilePage(app.basic.BasePublicPage):
-    def __before__(self, *args):
-        pass
-    
-    def get(self, name):
-        key = 'DataFile.name.%s' % name
-        f = memcache.get(key)
-        if not f:
-            f = model.Message.all().filter('filename =', name).get()
-            memcache.set(key, f)
-        production = self.request.url.find('www.gtfs-data-exchange.com')!= -1
-        
-        if f:
-            return self.redirect(f.filelink(production=production))
-        else:
-            return self.error(404)
-
-
+import app.static
 
 def main():
     application = webapp2.WSGIApplication2(
                   [
                   #('/sitemap.xml', Sitemap),
-                   ('/', MainPage),
-                   ('/how-to-provide-open-data', StaticPage),
-                   ('/submit-feed', SubmitFeedPage),
+                   ('/', app.agencies.MainPage),
+                   ('/(how-to-provide-open-data)', app.static.StaticPage),
+                   ('/(submit-feed)', app.static.SubmitFeedPage),
                    ('/upload', app.upload.UploadFile),
-                   ('/queue', QueuePage),
-                   ('/feed', FeedPage),
-                   ('/meta/(?P<key>.*?)/edit/?', CommentAdminPage),
-                   ('/meta/(?P<key>.*?)/?', CommentPage),
-                   ('/(?P<userOrAgency>user)/(?P<id>.*?)/feed/?', FeedPage),
-                   ('/user/(?P<user>.*?)/?', UserPage),
-                   ('/(?P<userOrAgency>agency)/(?P<id>.*?)/feed/?', FeedPage),
-                   ('/agency/', RedirectAgencyList),
-                   ('/agencies/bylocation', AgenciesByLocation),
-                   ('/agencies/bylastupdate', AgenciesByLastUpdate),
-                   ('/agencies/astable', AgenciesAsTable),
-                   ('/agencies', Agencies),
+                   ('/queue', app.upload.QueuePage),
+                   ('/feed', app.agency.FeedPage),
+                   ('/meta/(?P<key>.*?)/edit/?', app.admin.CommentAdminPage),
+                   ('/meta/(?P<key>.*?)/?', app.agency.CommentPage),
+                   ('/(?P<userOrAgency>user)/(?P<id>.*?)/feed/?', app.agency.FeedPage),
+                   ('/user/(?P<user>.*?)/?', app.agency.UserPage),
+                   ('/(?P<userOrAgency>agency)/(?P<id>.*?)/feed/?', app.agency.FeedPage),
+                   # ('/agency/', RedirectAgencyList),
+                   ('/agencies/bylocation', app.agencies.AgenciesByLocation),
+                   ('/agencies/bylastupdate', app.agencies.AgenciesByLastUpdate),
+                   ('/agencies/astable', app.agencies.AgenciesAsTable),
+                   ('/agencies', app.agencies.Agencies),
                    ('/agency/(?P<slug>.*?).json$', app.api.APIAgencyPage),
-                   ('/agency/(?P<slug>.*?)/latest.zip', LatestAgencyFile),
-                   ('/agency/(?P<slug>.*?)/?', AgencyPage),
-                   ('/gtfs/(?P<name>.*\.zip)', ZipFilePage),
+                   ('/agency/(?P<slug>.*?)/latest.zip', app.agency.LatestAgencyFile),
+                   ('/agency/(?P<slug>.*?)/?', app.agency.AgencyPage),
+                   ('/gtfs/(?P<name>.*\.zip)', app.upload.ZipFilePage),
                    
                    (r'/a/$', app.admin.AdminIndex),
                    (r'/a/aliases$', app.admin.AdminAliases),

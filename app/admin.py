@@ -9,7 +9,7 @@ import datetime
 class AdminIndex(app.basic.BaseController):
     @app.basic.admin_required
     def get(self):
-        self.render('views/admin_index.html')
+        self.render('templates/admin_index.html')
 
 class AdminAliases(app.basic.BasePublicPage):
     @app.basic.admin_required
@@ -19,23 +19,23 @@ class AdminAliases(app.basic.BasePublicPage):
     def get(self):
         agencies = utils.get_all_agencies()
         aliases = utils.get_all_aliases()
-        self.render('views/admin_aliases.html', {'agencies':agencies, 'aliases':aliases})
+        self.render('templates/admin_aliases.html', {'agencies':agencies, 'aliases':aliases})
     
     def post(self):
         f = self.request.POST.get('from_agency', '')
         t = self.request.POST.get('to_agency', '')
         if not t or f == t:
-            return self.render('views/admin_aliases.html', {'error':'Select an agency to merge from, and one to merge to'})
+            return self.render('templates/admin_aliases.html', {'error':'Select an agency to merge from, and one to merge to'})
         
         if not f and  (not self.request.POST.get('to_name', '') or not self.request.POST.get('to_slug', '')):
-            return self.render('views/admin_aliases.html', {'error':'new name and slug must be selected when only selecting the "to" agency'})
+            return self.render('templates/admin_aliases.html', {'error':'new name and slug must be selected when only selecting the "to" agency'})
         
         if f:
             f = db.get(db.Key(f))
         t = db.get(db.Key(t))
         
         if not t or f == t:
-            return self.render('views/admin_aliases.html', {'error':'Select an agency to merge from, and one to merge to'})
+            return self.render('templates/admin_aliases.html', {'error':'Select an agency to merge from, and one to merge to'})
         
         ## go through the messages
         if f:
@@ -64,7 +64,7 @@ class AdminAliases(app.basic.BasePublicPage):
         memcache.delete('Agency.slug.%s' % aa.slug)
         memcache.delete('AgencyAlias.slug.%s' % aa.slug)
         
-        self.render('views/generic.html', {'message':'Agency Merged Successfully'})
+        self.render('templates/generic.html', {'message':'Agency Merged Successfully'})
 
 
 class AgencyEditPage(app.basic.BasePublicPage):
@@ -81,7 +81,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
         
         crawl_urls = model.CrawlBaseUrl.all().filter('agency =', agency).fetch(100)
         
-        self.render('views/agency_edit.html', {'agency':agency, 'crawl_urls': crawl_urls})
+        self.render('templates/agency_edit.html', {'agency':agency, 'crawl_urls': crawl_urls})
 
     @app.basic.login_required
     def post(self, slug):
@@ -125,4 +125,27 @@ class AgencyEditPage(app.basic.BasePublicPage):
         memcache.delete('Agency.all')
         memcache.set('Agency.slug.%s' % agency.slug, agency)
 
-        self.render('views/generic.html', {'message':'Agency %s updated' % agency.name})
+        self.render('templates/generic.html', {'message':'Agency %s updated' % agency.name})
+
+
+class CommentAdminPage(app.basic.BasePublicPage):
+    @app.basic.admin_required
+    def get(self, key=None):
+        if not key:
+            return self.error(404)
+        try:
+            obj = db.get(db.Key(key))
+        except:
+            return self.error(404)
+        if not obj:
+            return self.error(404)
+        self.render('templates/comment_admin.html', {'msg':obj})
+    @app.basic.admin_required
+    def post(self, key=None):
+        try:
+            obj = db.get(db.Key(key))
+        except:
+            return self.error(404)
+        obj.content = self.request.POST.get('comments', obj.content)
+        obj.put()
+        self.redirect('/meta/%d' % obj.key().id())

@@ -112,7 +112,7 @@ class UploadFile(app.basic.BasePublicPage):
             signature="C2wGDUj7kyN1bJ+jhLc662iZsXc="
         randstring = ''.join([random.choice(string.letters+string.digits) for x in range(20)])
         nextkey = str(datetime.datetime.now())+'-'+randstring+'.zip'
-        self.render('views/upload.html', {'policy':policy, 'signature':signature, 'nextkey':nextkey.replace(' ', '-')})
+        self.render('templates/upload.html', {'policy':policy, 'signature':signature, 'nextkey':nextkey.replace(' ', '-')})
     
     @app.basic.login_required
     def post(self):
@@ -139,3 +139,32 @@ class UploadFile(app.basic.BasePublicPage):
             return self.response.out.write(e.msg)
         
         self.redirect(redirect_url)
+        
+class QueuePage(app.basic.BasePublicPage):
+    #@app.basic.login_required
+    def get(self):
+        if not self.request.GET.get('key', '') or not self.request.GET.get('bucket', '').startswith('gtfs'):
+            return self.redirect('/upload')
+        self.render('templates/queue.html')
+
+
+
+
+
+
+class ZipFilePage(app.basic.BasePublicPage):
+    def __before__(self, *args):
+        pass
+
+    def get(self, name):
+        key = 'DataFile.name.%s' % name
+        f = memcache.get(key)
+        if not f:
+            f = model.Message.all().filter('filename =', name).get()
+            memcache.set(key, f)
+        production = self.request.url.find('www.gtfs-data-exchange.com')!= -1
+
+        if f:
+            return self.redirect(f.filelink(production=production))
+        else:
+            return self.error(404)

@@ -57,7 +57,7 @@ class BaseController(webapp2.RequestHandler):
             message = 'Sorry, that page is reserved for administrators.  '
         elif errorcode == 500:
             message = "Sorry, the server encountered an error.  We have logged this error and will look into it."
-        return self.render('views/error.html', {'message':message})
+        return self.render('templates/error.html', {'message':message})
     
     def render(self, template_file, template_vals={}):
         """
