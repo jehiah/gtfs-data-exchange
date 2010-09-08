@@ -54,9 +54,11 @@ class Agency(db.Model):
             'is_official':self.is_official
         }
 
+    @property
     def recent(self):
         return self.lastupdate > (datetime.datetime.now()-datetime.timedelta(days=14))
     
+    @property
     def isnew(self):
         return self.date_added > (datetime.datetime.now()-datetime.timedelta(days=14))
         

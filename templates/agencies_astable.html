@@ -78,7 +78,7 @@ if (document.location.hash == '#filter_official') {
     <td>{{agency.location}}</td>
     <td><a href="{{agency.feed_baseurl}}">{{agency.feed_baseurl}}</a></td>
     <td>{% if agency.license_url %}<a href="{{agency.license_url}}">License Agreement</a>{% end %}</td>
-    <td>{{agency.lastupdate|date:"M-d-y"}}</td>
+    <td>{{agency.lastupdate.strftime("%m-%d-%Y")}}</td>
 </tr>
 {% end %}
 </table>

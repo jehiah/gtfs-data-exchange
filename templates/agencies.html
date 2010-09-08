@@ -50,10 +50,10 @@ $(document).ready(function(){
 
 <hr>
     
-{% for data in grouped_agencies %}
-<h4>{{data.0}}</h4>
+{% for letter, agencies in grouped_agencies %}
+<h4>{{letter}}</h4>
 <ol class="agency_list">
-    {% for agency in data.1 %}
+    {% for agency in agencies %}
     <li class="{% if not agency.is_official %}un{% end %}official">
         {% if agency.is_official %}
         <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available" align="absbottom">

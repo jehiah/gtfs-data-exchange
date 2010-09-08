@@ -49,17 +49,16 @@ $(document).ready(function(){
 <p> <a href="/feed"><img src="/static/feed.png" border="0" align="absbottom"> RSS of All Updates</a></p>
 
 <hr>
+{% set countries = list(set([x.country_name for x in agencies])) %}
 
-{% regroup agencies by country_name as country_list %}
-
-{% for country in country_list %}
-    <h4 class="country">{{ country.grouper }}</h4>
-    {% regroup country.list by state_name as state_list %}
-    {% for state in state_list %}
-        <p class="state"><strong>{{state.grouper}}</strong></p>
-    
+{% for country in countries %}
+    <h4 class="country">{{country }}</h4>
+    {% set states = list(set([x.state_name for x in agencies if x.country_name == country])) %}
+    {% for state in states %}
+        <p class="state"><strong>{{state}}</strong></p>
+        {% set agency_list = [x for x in agencies if x.country_name == country and x.state_name == state] %}
         <ol class="agency_list">
-        {% for agency in state.list %}
+        {% for agency in agency_list %}
             <li class="{% if not agency.is_official %}un{% end %}official">
                 {% if agency.is_official %}
                 <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available" align="absbottom">

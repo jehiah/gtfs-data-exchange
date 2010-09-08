@@ -15,22 +15,22 @@ def get_all_aliases():
     aliases = model.AgencyAlias.all().order('slug').fetch(200)
     return aliases
 
-def getRecentAgencies():
-    key = 'Agency.recent'
-    # recentAgencies = memcache.get(key)
-    recentAgencies = None
-    if recentAgencies is None:
-        recentAgencies = model.Agency.all().order('-date_added').fetch(5)
-        # memcache.set(key, recentAgencies)
-    return recentAgencies
+def get_recent_agencies():
+    # key = 'Agency.recent'
+    # recent_agencies = memcache.get(key)
+    recent_agencies = None
+    if recent_agencies is None:
+        recent_agencies = model.Agency.all().order('-date_added').fetch(5)
+        # memcache.set(key, recent_agencies)
+    return recent_agencies
         
-def getRecentMessages():
-    recentMessages = memcache.get('Message.recent')
-    if recentMessages is None:
+def get_recent_messages():
+    recent_messages = memcache.get('Message.recent')
+    if recent_messages is None:
         # .filter('date >',datetime.datetime.now()-datetime.timedelta(30))
-        recentMessages = model.Message.all().order('-date').fetch(7)
-        memcache.set('Message.recent',recentMessages,60*60*48) # 1 day
-    return recentMessages
+        recent_messages = model.Message.all().order('-date').fetch(7)
+        memcache.set('Message.recent',recent_messages,60*60*48) # 1 day
+    return recent_messages
 
 
 def incrAgencyCount():
@@ -47,7 +47,7 @@ def decrAgencyCount():
         count.count -=1
         count.put()
 
-def getAgencyCount():
+def get_agency_count():
     key = 'count.Agency'
     count = memcache.get(key)
     if count is not None:

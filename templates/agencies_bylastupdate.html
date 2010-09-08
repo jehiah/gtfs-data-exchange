@@ -57,7 +57,7 @@ $(document).ready(function(){
 </tr>
 {% for agency in agencies %}
 <tr class="{% if not agency.is_official %}un{% end %}official">
-    <td>{{agency.lastupdate|date:"M dS Y H:i"}}Z</td>
+    <td>{{agency.lastupdate.strftime("%b %d %Y %H:%M")}}Z</td>
     <td >
         {% if agency.is_official %}
         <img src="/static/star_green.png" width="17" height="22" alt="Official GTFS Data Source Available" title="Official GTFS Data Source Available" align="absbottom">
