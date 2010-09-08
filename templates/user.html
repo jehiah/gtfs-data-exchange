@@ -16,7 +16,7 @@
 <h2>Comments and Uploads by {{u.nickname}}</h2>
 
 <br clear="right"/>
-{% ifnotequal paginator.pages 1 %}
+{% if paginator.pages != 1 %}
 <div class="pagination">
     <span class="page-links">
         {% if previous %}
@@ -30,26 +30,26 @@
         {% end %}
     </span>
 </div>
-{% endnotequal %}
+{% end %}
 
 {% for msg in messages %}
 
 <div class="message">
-<p class="meta"><a href="/meta/{{msg.key}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By {{msg.user}}  <small>on {{msg.date|date:"D F dS Y H:i"}} Z</small>
+<p class="meta"><a href="/meta/{{msg.key().id()}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By {{msg.user}}  <small>on {{msg.date.strftime("%b %d %Y %H:%M")}} Z</small>
 		<br/>pertains to
 		{% for a in msg.agencies %}
 			<a href="{{a.link}}">{{a.name}}</a>
 		{% end %} 
 	</p>
-<div class="content">{{(msg.content)}}</div>
-{% if msg.hasFile %}
-<p><a href="{{msg.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{filesizeformat(msg.size)}}</span>{% end %} <a href="/meta/{{msg.key}}" title="permalink">more info &raquo;</a></p>
+<div class="content">{{markdown(msg.content)}}</div>
+{% if msg.hasFile and msg.filename %}
+<p><a href="{{msg.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{filesizeformat(msg.size)}}</span>{% end %} <a href="/meta/{{msg.key().id()}}" title="permalink">more info &raquo;</a></p>
 {% end %}
 </div>
 
 {% end %}
 
-{% ifnotequal paginator.pages 1 %}
+{% if paginator.pages != 1 %}
 <div class="pagination">
     <span class="page-links">
         {% if previous %}
@@ -63,7 +63,7 @@
         {% end %}
     </span>
 </div>
-{% endnotequal %}
+{% end %}
 
 
 {% end %}

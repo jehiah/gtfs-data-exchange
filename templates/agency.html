@@ -39,7 +39,7 @@ inputPane = document.getElementById("comments");
 
 	<p>
 	    <img src="/static/feed.png"> <a href="/agency/{{agency.slug}}/feed">RSS of {{agency.name}} Updates</a><br/>
-        Download the <a href="/agency/{{agency.slug}}/latest.zip">Latest GTFS File </a> <small><em>({{messages.0.message.filename}}) posted on {{messages.0.message.date|date:"D f dS"}}</em></small> 
+        Download the <a href="/agency/{{agency.slug}}/latest.zip">Latest GTFS File </a> <small><em>({{messages[0].message.filename}}) posted on {{messages[0].message.date.strftime("%b %d %Y")}}</em></small> 
 	</p>
 
 {% if current_user_is_admin %}
@@ -51,17 +51,17 @@ inputPane = document.getElementById("comments");
 <br clear="right"/>
 {% for msg in messages %}
 <div class="message">
-<p class="meta"><a href="/meta/{{msg.message.key().id}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.message.user}}/">{{msg.message.user}}</a>  <small>on {{msg.message.date|date:"D F dS Y H:i"}} Z</small>
-	{% ifnotequal msg.message.agencies.__len__ 1 %}
+<p class="meta"><a href="/meta/{{msg.message.key().id()}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.message.user}}/">{{msg.message.user}}</a>  <small>on {{msg.message.date.strftime("%b %d %Y %H:%M")}} Z</small>
+	{% if len(msg.message.agencies) != 1 %}
 		<br/>also pertains to 
 		{% for a in msg.message.agencies %}
-			{% ifnotequal agency.slug a.slug %}<a href="{{a.link}}">{{a.name}}</a>{% endnotequal %} 
+			{% if agency.slug != a.slug %}<a href="{{a.link}}">{{a.name}}</a>{% end %} 
 		{% end %} 
-	{% endnotequal %}
+	{% end %}
 	</p>
 <div class="content">{{markdown(msg.message.content)}}</div>
 {% if msg.hasFile %}
-<p><a href="{{msg.message.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.message.filename}}</a> {% if msg.message.size %}<span class="filesize">{{filesizeformat(msg.message.size)}}</span>{% end %} <a href="/meta/{{msg.message.key().id}}" title="permalink">more info &raquo;</a></p>
+<p><a href="{{msg.message.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.message.filename}}</a> {% if msg.message.size %}<span class="filesize">{{filesizeformat(msg.message.size)}}</span>{% end %} <a href="/meta/{{msg.message.key().id()}}" title="permalink">more info &raquo;</a></p>
 {% end %}
 </div>
 

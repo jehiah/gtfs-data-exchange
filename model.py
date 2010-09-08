@@ -85,6 +85,8 @@ class Agency(db.Model):
             if self.all().filter('slug',self.slug).count() != 0:
                 raise "Cant Save, slug already exists"
         db.Model.put(self)
+    
+    @property
     def display_description(self):
         if not (self.description or '').strip():
             return ''
@@ -134,7 +136,7 @@ class Message(db.Model):
         return rfc3339(self.date)
 
     def filelink(self, production=None):
-        if not self.hasFile:
+        if not self.hasFile or not self.filename:
             return ''
         if production == True:
             return 'http://gtfs.s3.amazonaws.com/' + self.filename

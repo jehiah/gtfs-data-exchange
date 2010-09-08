@@ -19,7 +19,7 @@
 
 {% for msg in recent_messages %}
 <div class="message">
-<p class="meta"><a href="/meta/{{msg.key().id}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a>  <small>{{timesince(msg.date)}} ago</small>
+<p class="meta"><a href="/meta/{{msg.key().id()}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a>  <small>{{timesince(msg.date)}} ago</small>
 		<br/>pertains to
 		{% for a in msg.agencies %}
 			<a href="{{a.link}}">{{a.name}}</a>
@@ -28,7 +28,7 @@
 <div class="content">{{markdown(msg.content)}}</div>
 
 {% if msg.hasFile %}
-<p><a href="{{msg.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{filesizeformat(msg.size)}}</span>{% end %} <a href="/meta/{{msg.key().id}}" title="permalink">more info &raquo;</a> </p>
+<p><a href="{{msg.filelink(production)}}"><img src="/static/package.png" valign="bottom" hspace="3">{{msg.filename}}</a> {% if msg.size %}<span class="filesize">{{filesizeformat(msg.size)}}</span>{% end %} <a href="/meta/{{msg.key().id()}}" title="permalink">more info &raquo;</a> </p>
 {% end %}
 </div>
 {% end %}

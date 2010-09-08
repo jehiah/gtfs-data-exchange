@@ -19,7 +19,7 @@
 		<select name="from_agency" id="from_agency">
 			<option value="">Select One ...</option>
 			{% for agency in agencies %}
-				<option value="{{agency.key}}">{{agency.name}}</option>
+				<option value="{{agency.key()}}">{{agency.name}}</option>
 			{% end %}
 		</select>
 		</label>
@@ -29,7 +29,7 @@
 		<select name="to_agency" id="to_agency">
 			<option value="">Select One ...</option>
 			{% for agency in agencies %}
-				<option value="{{agency.key}}">{{agency.name}}</option>
+				<option value="{{agency.key()}}">{{agency.name}}</option>
 			{% end %}
 		</select>
 		</label><br/>

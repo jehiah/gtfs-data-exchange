@@ -9,11 +9,11 @@
   {%block extrahead %}{% end %}
 {% for msg in messages %}
   <entry>
-	<link rel="alternate" href="{{baseurl}}/meta/{{msg.key().id}}" type="text/html"/>
+	<link rel="alternate" href="{{baseurl}}/meta/{{msg.key().id()}}" type="text/html"/>
 	<author>
 	  <name>{{msg.user}}</name>
 	</author>
-      <id>{{baseurl}}/meta/{{msg.key().id}}</id>
+      <id>{{baseurl}}/meta/{{msg.key().id()}}</id>
       <title type="text">{% if msg.hasFile %}Upload{%else%}Comment{%end%} : {% for a in msg.agencies %}{{a.name}}{% if not forloop.last %},{% end %} {% end %}by {{msg.user}}</title>
       <content type="html"><![CDATA[ 
 {{markdown(msg.content)}}

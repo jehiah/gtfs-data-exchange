@@ -1,5 +1,6 @@
 from google.appengine.api import users
 from google.appengine.ext import db
+import tornado.web
 
 import logging
 import datetime
@@ -30,7 +31,7 @@ class CommentPage(app.basic.BasePublicPage):
             raise tornado.web.HTTPError(404)
         if not obj:
             raise tornado.web.HTTPError(404)
-        self.render('comment.html', {'msg':obj})
+        self.render('comment.html', msg=obj)
 
 class LatestAgencyFile(app.basic.BasePublicPage):
     def get(self, slug):
@@ -56,7 +57,7 @@ class AgencyPage(app.basic.BasePublicPage):
         if not agency:
             raise tornado.web.HTTPError(404)
         messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1000)
-        self.render('agency.html', {'agency':agency, 'messages':messages})
+        self.render('agency.html', agency=agency, messages=messages)
 
 class FeedPage(app.basic.BasePublicPage):
     def get(self, userOrAgency=None, id=None):
@@ -73,7 +74,7 @@ class FeedPage(app.basic.BasePublicPage):
             else:
                 u = users.User(user+'@gmail.com')
             context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(30)).filter('user =', u).order('-date').fetch(25)
-            self.render('agency_atom.xml', context)
+            self.render('agency_atom.xml', **context)
         elif userOrAgency == 'agency':
             s = utils.lookup_agency_alias(id)
             if s:
@@ -82,7 +83,7 @@ class FeedPage(app.basic.BasePublicPage):
             agency = model.Agency.all().filter('slug =', id).get()
             context['agency'] = agency
             context['messages'] = [x.message for x in model.MessageAgency.all().filter('agency =', agency).filter('date >', datetime.datetime.now()-datetime.timedelta(30)).order('-date').fetch(25)]
-            self.render('agency_atom.xml', context)
+            self.render('agency_atom.xml', **context)
 
 class UserPage(app.basic.BasePublicPage):
     def get(self, user):
@@ -110,5 +111,5 @@ class UserPage(app.basic.BasePublicPage):
         except:
             records = paginator.get_page(0)
             page = 1
-        self.render('user.html', {'u':u, 'messages':records, 'paginator':paginator,
+        self.render('user.html', **{'u':u, 'messages':records, 'paginator':paginator,
         "next" : paginator.has_next_page(page-1), 'previous':paginator.has_previous_page(page-1), 'previous_page_number':page-1, 'next_page_number':page+1, "page" : page})
