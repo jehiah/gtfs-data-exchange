@@ -1,3 +1,6 @@
+# running locally.
+
+In order to run locally, you need a copy of [tornado](http://tornadoweb.org/) available in your import path. To upload to appengine, you must also have it as a local directory.
 
 # bulk load a copy of production agency data
 

@@ -3,9 +3,9 @@ import django.utils.simplejson as json
 
 import sys
 sys.path.append('/Applications/GoogleAppEngineLauncher.app/Contents/Resources/GoogleAppEngine-default.bundle/Contents/Resources/google_appengine/')
+sys.path.append('..')
 
 import model
-import utils
 import datetime
 
 def main():
