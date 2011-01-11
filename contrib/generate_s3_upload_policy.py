@@ -8,7 +8,7 @@ params = {
 }
 
 policy_document = """
-{"expiration": "2011-01-01T00:00:00Z",
+{"expiration": "2012-01-01T00:00:00Z",
   "conditions": [ 
     {"bucket": "%(bucket)s"}, 
     ["starts-with", "$key", "queue/"],
