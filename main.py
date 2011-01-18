@@ -674,10 +674,7 @@ class ManageAliases(BasePublicPage):
         
     def get(self):
         ## Get agencies ??
-        agencies = memcache.get('Agency.all')
-        if not agencies:
-            agencies = model.Agency.all().order('name').fetch(200)
-            memcache.set('Agency.all',agencies)
+        agencies = utils.getAllAgencies()
         
         self.render('views/ManageAliases.html',{'agencies':agencies})
 
