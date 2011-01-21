@@ -149,6 +149,9 @@ class SubmitFeedPage(StaticPage):
         else:
             user = ''
         
+        if not user and not agency_name and not agency_locaion and not contact_info:
+            return self.render('views/generic.html', {'error':'Agency Name required'})
+        
         mail.send_mail(sender="Jehiah Czebotar <jehiah@gmail.com>",
                       to="Jehiah Czebotar <jehiah@gmail.com>",
                       subject="New GTFS Feed - %s" % (agency_name or feed_location),
