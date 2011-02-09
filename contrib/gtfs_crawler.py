@@ -108,6 +108,12 @@ class Crawler:
             if headers.get(k,None):
                 d[k]=headers[k]
         
+        
+        if headers.get('Content-Disposition') and 'filename=' in headers.get('Content-Disposition'):
+            filename = headers.get('Content-Disposition').split('filename=', 1)[-1].strip('"')
+            if filename.endswith(".zip"):
+                self.content_disposition = filename
+        
         req = urllib2.Request(self.homebase+'crawl/headers')
         req.add_data({'url': url,'headers':str(d)})
         urllib2.urlopen(req).read()
@@ -240,6 +246,7 @@ class Crawler:
             return True
     
     def getUrl(self,url,referer):
+        self.content_disposition = None
         ## fetch previous request headers
         pattern = re.compile('http://(?P<username>.*):(?P<password>.*)@(?P<domain>.*?)/(?P<path>.*)')
         headers = self.headers(url) or {}
@@ -290,7 +297,7 @@ class Crawler:
             self.errorurls +=1
             traceback.print_tb(sys.exc_info()[2])
             raise DownloadError()
-
+        
         self.saveheaders(url,i)
         return d
     
@@ -326,7 +333,7 @@ class Crawler:
         if url.endswith(".pdf"):
             print "\==pdf <skipped>"
             return
-        if url.endswith(".zip"):
+        if url.endswith(".zip") or self.content_disposition:
             self.totaldownload +=1
             
             ## check if the md5 already exists
