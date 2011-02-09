@@ -560,6 +560,7 @@ def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
     
     d = datetime.datetime.now()
     datestr = d.strftime('%Y%m%d_%H%M')
+    seen_agencies = []
     for ag in raw_agencies:
         ## get from the db
         ## lookup by url first
@@ -593,6 +594,11 @@ def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
         if len(raw_agencies) == 1:
             m.filename = '%s_%s.zip' % (a.slug,datestr)
             m.put()
+        
+        # some zip files have the same url several times; only capture the first time that url is used
+        if a in seen_agencies:
+            continue
+        seen_agencies.append(a)
 
         ma= model.MessageAgency()
         ma.agency = a
