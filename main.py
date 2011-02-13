@@ -30,6 +30,7 @@ import utils
 import csv
 import codecs
 import types
+import urlparse
 import cStringIO
 from django.utils import simplejson as json
 
@@ -149,7 +150,7 @@ class SubmitFeedPage(StaticPage):
         else:
             user = ''
         
-        if not user and not agency_name and not agency_locaion and not contact_info:
+        if not user and not agency_name and not agency_location and not contact_info:
             return self.render('views/generic.html', {'error':'Agency Name required'})
         
         mail.send_mail(sender="Jehiah Czebotar <jehiah@gmail.com>",
@@ -567,8 +568,17 @@ def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
         
         a = None
         if ag.get('agency_url','').strip():
+            url = ag['agency_url'].strip()
+            try:
+                # TODO: use urlnorm
+                url_parsed = urlparse.urlparse(url)
+                if not url_parsed.path:
+                    url += '/'
+            except:
+                logging.exception('unable to parse url')
+                    
             ## try to get via url first as it's more unique
-            a = model.Agency.all().filter('url =',ag['agency_url'].strip()).get()
+            a = model.Agency.all().filter('url =',url).get()
         if not a:
             slug = model.slugify(ag['agency_name'].strip())
             s = utils.lookupAgencyAlias(slug)
