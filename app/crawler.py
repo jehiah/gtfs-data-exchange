@@ -29,7 +29,7 @@ class CrawlerMain(app.basic.BaseController):
         crawlurls = model.CrawlBaseUrl.all().order('lastcrawled').fetch(1000)
         crawlurls = [x for x in crawlurls if not x.agency] # filter out the ones linked to an agency since we can't do that in a filter()
         agencies = utils.get_all_agencies()
-        self.render('crawler_main.html', {'crawlurls':crawlurls, 'agencies':agencies})
+        self.render('crawler_main.html', crawlurls=crawlurls, agencies=agencies)
     
     def post(self):
         url = self.get_argument('orig_url')

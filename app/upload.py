@@ -123,7 +123,7 @@ class UploadFile(app.basic.BasePublicPage):
             signature="C2wGDUj7kyN1bJ+jhLc662iZsXc="
         randstring = ''.join([random.choice(string.letters+string.digits) for x in range(20)])
         nextkey = str(datetime.datetime.now())+'-'+randstring+'.zip'
-        self.render('upload.html', {'policy':policy, 'signature':signature, 'nextkey':nextkey.replace(' ', '-')})
+        self.render('upload.html', policy=policy, signature=signature, nextkey=nextkey.replace(' ', '-'))
     
     @app.basic.login_required
     def post(self):

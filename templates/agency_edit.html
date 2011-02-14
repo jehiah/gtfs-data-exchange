@@ -8,26 +8,26 @@
 <h3>Edit '{{agency.name}}'</h3>
 <p>Use this page to update agency information</p>
 
-{% if error %}
+{% if "error" in locals() and error %}
 <div class="error">{{error}}</div>
 {% end %}
 
 <fieldset>
 	<form action="/a/edit/{{agency.slug}}" method="post">
 		<label>URL:<br/>
-		<input type="text" size="100" name="url" value="{{agency.url|default:""}}"></label><br/>
+		<input type="text" size="100" name="url" value="{{agency.url or ""}}"></label><br/>
 		<label>Country:<br/>
-		<input type="text" size="50" name="country" value="{{agency.country_name|default:""}}"></label><br/>
+		<input type="text" size="50" name="country" value="{{agency.country_name or ""}}"></label><br/>
 		<label>State:<br/>
-		<input type="text" size="50" name="state" value="{{agency.state_name|default:""}}"></label><br/>
+		<input type="text" size="50" name="state" value="{{agency.state_name or ""}}"></label><br/>
 		<label>Area:<br/>
-		<input type="text" size="50" name="area" value="{{agency.area_name|default:""}}"></label><br/>
+		<input type="text" size="50" name="area" value="{{agency.area_name or ""}}"></label><br/>
 		<label>Feed Location Url:<br/>
-		<input type="text" size="100" name="feed" value="{{agency.feed_baseurl|default:""}}"></label><br/>
+		<input type="text" size="100" name="feed" value="{{agency.feed_baseurl or ""}}"></label><br/>
 		<label>License Agreement Url:<br/>
-		<input type="text" size="100" name="license" value="{{agency.license_url|default:""}}"></label><br/>
+		<input type="text" size="100" name="license" value="{{agency.license_url or ""}}"></label><br/>
 		<label>Description (markdown):<br/>
-		<textarea name="description" style="width:700px;height:100px;">{{agency.description|default:""}}</textarea>	
+		<textarea name="description" style="width:700px;height:100px;">{{agency.description or ""}}</textarea>	
 		</label><br/>
         
         Official Data: 

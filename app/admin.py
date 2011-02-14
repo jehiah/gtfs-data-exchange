@@ -20,23 +20,23 @@ class AdminAliases(app.basic.BasePublicPage):
     def get(self):
         agencies = utils.get_all_agencies()
         aliases = utils.get_all_aliases()
-        self.render('admin_aliases.html', {'agencies':agencies, 'aliases':aliases})
+        self.render('admin_aliases.html', agencies=agencies, aliases=aliases)
     
     def post(self):
         f = self.get_argument('from_agency', '')
         t = self.get_argument('to_agency', '')
         if not t or f == t:
-            return self.render('admin_aliases.html', {'error':'Select an agency to merge from, and one to merge to'})
+            return self.render('admin_aliases.html', error='Select an agency to merge from, and one to merge to')
         
         if not f and  (not self.get_argument('to_name', '') or not self.get_argument('to_slug', '')):
-            return self.render('admin_aliases.html', {'error':'new name and slug must be selected when only selecting the "to" agency'})
+            return self.render('admin_aliases.html', error='new name and slug must be selected when only selecting the "to" agency')
         
         if f:
             f = db.get(db.Key(f))
         t = db.get(db.Key(t))
         
         if not t or f == t:
-            return self.render('admin_aliases.html', {'error':'Select an agency to merge from, and one to merge to'})
+            return self.render('admin_aliases.html', error='Select an agency to merge from, and one to merge to')
         
         ## go through the messages
         if f:
@@ -65,7 +65,7 @@ class AdminAliases(app.basic.BasePublicPage):
         memcache.delete('Agency.slug.%s' % aa.slug)
         memcache.delete('AgencyAlias.slug.%s' % aa.slug)
         
-        self.render('generic.html', {'message':'Agency Merged Successfully'})
+        self.render('generic.html', message='Agency Merged Successfully')
 
 
 class AgencyEditPage(app.basic.BasePublicPage):
@@ -82,7 +82,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
         
         crawl_urls = model.CrawlBaseUrl.all().filter('agency =', agency).fetch(100)
         
-        self.render('agency_edit.html', {'agency':agency, 'crawl_urls': crawl_urls})
+        self.render('agency_edit.html', agency=agency, crawl_urls=crawl_urls, error=None)
 
     @app.basic.login_required
     def post(self, slug):
@@ -126,7 +126,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
         memcache.delete('Agency.all')
         memcache.set('Agency.slug.%s' % agency.slug, agency)
 
-        self.render('generic.html', {'message':'Agency %s updated' % agency.name})
+        self.render('generic.html', message='Agency %s updated' % agency.name)
 
 
 class CommentAdminPage(app.basic.BasePublicPage):
@@ -140,7 +140,7 @@ class CommentAdminPage(app.basic.BasePublicPage):
             raise tornado.web.HTTPError(404)
         if not obj:
             raise tornado.web.HTTPError(404)
-        self.render('comment_admin.html', {'msg':obj})
+        self.render('comment_admin.html', msg=obj)
     @app.basic.admin_required
     def post(self, key=None):
         try:

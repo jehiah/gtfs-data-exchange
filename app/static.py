@@ -14,7 +14,7 @@ class SubmitFeedPage(StaticPage):
 
         feed_location = self.get_argument('feed_location')
         if not feed_location:
-            return self.render('generic.html', {'error':'Feed Location is required'})
+            return self.render('generic.html', error='Feed Location is required')
 
         agency_name = self.get_argument('agency_name')
         agency_location = self.get_argument('agency_location')
@@ -41,4 +41,4 @@ Logged In User: %(user)s
         'user' : user
         })
 
-        self.render('generic.html', {'message':'Thank You For Your Submission'})
+        self.render('generic.html', message='Thank You For Your Submission')

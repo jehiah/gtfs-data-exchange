@@ -7,11 +7,11 @@
 {% block body %}
 
 
-{% if message %}
+{% if "message" in locals() and message %}
 <div class="confirm">{{message}}</div>
 {% end %}
 
-{% if error %}
+{% if "error" in locals() and error %}
 <div class="error">{{error}}</div>
 {% end %}
 
