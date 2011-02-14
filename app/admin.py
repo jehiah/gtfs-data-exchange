@@ -5,6 +5,7 @@ import model
 import app.basic
 import utils
 import datetime
+import tornado.web
 
 class AdminIndex(app.basic.BaseController):
     @app.basic.admin_required
