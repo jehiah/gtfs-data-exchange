@@ -6,7 +6,7 @@
 {% if current_user_is_admin %}<p><a href="/meta/{{msg.key}}/edit"><img src="/static/pencil.png"> Edit</a></p> {% end %}
 
 <div class="message">
-<p class="meta">  <small>Posted on {{msg.date|date:"D F dS Y H:i"}} Z</small>
+<p class="meta">  <small>Posted on {{msg.date.strftime("%b %d %Y %H:%M")}} Z</small>
 		<br/>
 		{% for a in msg.agencies %}
 			<a href="{{a.link}}">{{a.name}}</a>

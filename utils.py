@@ -32,6 +32,21 @@ def get_recent_messages():
         memcache.set('Message.recent',recent_messages,60*60*48) # 1 day
     return recent_messages
 
+def get_agency_crawl_urls(agency):
+    messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(15)
+    archivers = []
+    for msg in messages:
+        user = str(msg.message.user)
+        if user.endswith('-archiver') and user not in archivers:
+            archivers.append(user)
+    
+    logging.info(archivers)
+    crawl_urls = []
+    for archiver in archivers:
+        crawler = model.CrawlBaseUrl.all().filter('download_as', archiver).get()
+        if crawler:
+            crawl_urls.append(crawler)
+    return crawl_urls
 
 def incrAgencyCount():
     memcache.incr('count.Agency')

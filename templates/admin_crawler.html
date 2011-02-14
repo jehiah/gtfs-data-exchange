@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block rightsidebar %}
+{% end %}
+
+
+{% block body %}
+
+<h2>List of Crawler Accounts</h2>
+		
+{% if crawl_urls %}
+<ul>
+{% for u in crawl_urls %}
+<li>
+	<a href="/user/{{url_escape(u.download_as)}}/edit">{{escape(u.download_as)}}</a> - {% if u.enabled %}<small>{{escape(u.url)}}</small>{% else %} disabled {% end %}</a>
+</li>
+{% end %}
+</ul>
+{% else %}
+    <p>No crawler accounts configured.</p>
+{% end %}
+{% end %}

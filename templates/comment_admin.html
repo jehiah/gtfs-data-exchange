@@ -8,7 +8,7 @@
 <h3>{% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a></h3>
 
 <div class="message">
-<p class="meta">  <small>Posted on {{msg.date|date:"D F dS Y H:i"}}</small>
+<p class="meta">  <small>Posted on {{msg.date.strftime("%b %d %Y %H:%M")}}</small>
 		<br/>
 		{% for a in msg.agencies %}
 			<a href="{{a.link}}">{{a.name}}</a>

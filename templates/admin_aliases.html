@@ -9,7 +9,7 @@
 <p>Use this page to merge two agency names</p>
 <p>be werry werry kareful.</p>
 
-{% if error %}
+{% if "error" in locals() and error %}
 <div class="error">{{error}}</div>
 {% end %}
 
@@ -52,7 +52,7 @@
     {% for alias in aliases %}
         <li>
             {{alias.slug}} ({{alias.name}}) =&gt; {{alias.real_agency.slug}} ({{alias.real_agency.name}})<br/>
-            <em>created on {{alias.date_aliased|date:"M dS Y H:i"}}Z</em>
+            <em>created on {{alias.date_aliased.strftime("%b %d %Y %H:%M")}}Z</em>
         </li>
     {% end %}
 </ul>

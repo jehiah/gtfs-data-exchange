@@ -26,10 +26,8 @@ def crawler_required(method):
 class CrawlerMain(app.basic.BaseController):
     @app.basic.admin_required
     def get(self):
-        crawlurls = model.CrawlBaseUrl.all().order('lastcrawled').fetch(1000)
-        crawlurls = [x for x in crawlurls if not x.agency] # filter out the ones linked to an agency since we can't do that in a filter()
-        agencies = utils.get_all_agencies()
-        self.render('crawler_main.html', crawlurls=crawlurls, agencies=agencies)
+        crawl_urls = model.CrawlBaseUrl.all().order('download_as').fetch(1000)
+        self.render('admin_crawler.html', crawl_urls=crawl_urls)
     
     def post(self):
         url = self.get_argument('orig_url')
@@ -57,16 +55,15 @@ class CrawlerMain(app.basic.BaseController):
 class CrawlNextUrl(app.basic.BaseController):
     @crawler_required
     def get(self):
-        if self.get_argument('timeframe', ''):
-            d = datetime.datetime.now() - datetime.timedelta(minutes=30)
-        else:
-            d = datetime.datetime.now() - datetime.timedelta(hours=12)
-        #d = datetime.datetime.now() + datetime.timedelta(hours=1)
-        u = model.CrawlBaseUrl.all().filter('lastcrawled <', d).order('-lastcrawled').get()
+        u = model.CrawlBaseUrl.all().filter('enabled =', True).filter('next_crawl >', datetime.datetime.now()).get()
         if not u:
             return self.response.out.write('NONE')
         logging.debug(str('returning ' + str(u.url) + ' to be cralwed'))
         u.lastcrawled = datetime.datetime.now()
+        if u.crawl_interval:
+            u.next_crawl = u.lastcrawled + datetime.timedelta(hours=u.crawl_interval)
+        else:
+            u.next_crawl = u.lastcrawled + datetime.timedelta(hours=24)
         u.put()
         self.response.out.write(str(u.asMapping()))
 

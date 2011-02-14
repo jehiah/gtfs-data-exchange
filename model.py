@@ -122,7 +122,7 @@ class Message(db.Model):
             return a
         a = []
         try:
-            for x in MessageAgency.all().filter('message =',self).order('agency').fetch(50):
+            for x in MessageAgency.all().filter('message =', self).order('agency').fetch(50):
                 a.append((x.agency.name,x.agency))
         except:
             pass
@@ -159,8 +159,8 @@ class Message(db.Model):
         )
 
 class MessageAgency(db.Model):
-    agency = db.ReferenceProperty(Agency,collection_name='messages_set')
-    message = db.ReferenceProperty(Message,collection_name='agencies_set')
+    agency = db.ReferenceProperty(Agency, collection_name='messages_set')
+    message = db.ReferenceProperty(Message, collection_name='agencies_set')
     date = db.DateTimeProperty(auto_now_add=True)
     hasFile = db.BooleanProperty(default=False)
 
@@ -168,12 +168,15 @@ class MessageAgency(db.Model):
 
 class CrawlBaseUrl(db.Model):
     url = db.LinkProperty()
-    lastcrawled = db.DateTimeProperty(auto_now_add=True)
     recurse = db.IntegerProperty(default=1)
-    download_as = db.StringProperty(multiline=False,default='gtfs-archiver')
+    download_as = db.StringProperty(multiline=False, default='gtfs-archiver')
     show_url = db.BooleanProperty(default=True)
-    post_text = db.StringProperty(multiline=False,default='')
+    post_text = db.StringProperty(multiline=False, default='')
     agency = db.ReferenceProperty(Agency)
+    enabled = db.BooleanProperty(default=True)
+    crawl_interval = db.IntegerProperty(default=24)
+    lastcrawled = db.DateTimeProperty(auto_now_add=True)
+    next_crawl = db.DateTimeProperty(auto_now_add=True)
     def asMapping(self):
         return {'url' : self.url,
                 'recurse' : self.recurse,

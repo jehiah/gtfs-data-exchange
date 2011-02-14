@@ -80,7 +80,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
         if not agency:
             raise tornado.web.HTTPError(404)
         
-        crawl_urls = model.CrawlBaseUrl.all().filter('agency =', agency).fetch(100)
+        crawl_urls = utils.get_agency_crawl_urls(agency)
         
         self.render('agency_edit.html', agency=agency, crawl_urls=crawl_urls, error=None)
 
@@ -90,7 +90,24 @@ class AgencyEditPage(app.basic.BasePublicPage):
         if not agency:
             raise tornado.web.HTTPError(404)
 
-        if self.get_argument('action.save.url'):
+        if self.get_argument('action.recrawl', None):
+            return self.render('generic.html', message='not implemented yet')
+        
+        elif self.get_argument('action.enable', None):
+            url = self.get_argument('orig_url')
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            c.enabled = True
+            c.put()
+            return self.redirect('/a/edit/' + agency.slug)
+
+        elif self.get_argument('action.disable', None):
+            url = self.get_argument('orig_url')
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            c.enabled = False
+            c.put()
+            return self.redirect('/a/edit/' + agency.slug)
+
+        elif self.get_argument('action.save.url', None):
             url = self.get_argument('orig_url')
             if url:
                 c = model.CrawlBaseUrl().all().filter('url =', url).get()
@@ -104,7 +121,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
             c.show_url = self.get_argument('show_url', True) == 'True'
             c.post_text = self.get_argument('post_text', '')
             c.put()
-            self.redirect('/a/edit/' + agency.slug)
+            return self.redirect('/a/edit/' + agency.slug)
             
 
         # agency.name = self.get_argument('name', agency.name)

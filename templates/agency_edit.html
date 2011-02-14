@@ -5,29 +5,29 @@
 
 
 {% block body %}
-<h3>Edit '{{agency.name}}'</h3>
+<h3>Edit ({{escape(agency.name)}})</h3>
 <p>Use this page to update agency information</p>
 
 {% if "error" in locals() and error %}
-<div class="error">{{error}}</div>
+<div class="error">{{escape(error)}}</div>
 {% end %}
 
 <fieldset>
-	<form action="/a/edit/{{agency.slug}}" method="post">
+	<form action="/a/edit/{{url_escape(agency.slug)}}" method="post">
 		<label>URL:<br/>
-		<input type="text" size="100" name="url" value="{{agency.url or ""}}"></label><br/>
+		<input type="text" size="100" name="url" value="{{escape(agency.url or "")}}"></label><br/>
 		<label>Country:<br/>
-		<input type="text" size="50" name="country" value="{{agency.country_name or ""}}"></label><br/>
+		<input type="text" size="50" name="country" value="{{escape(agency.country_name or "")}}"></label><br/>
 		<label>State:<br/>
-		<input type="text" size="50" name="state" value="{{agency.state_name or ""}}"></label><br/>
+		<input type="text" size="50" name="state" value="{{escape(agency.state_name or "")}}"></label><br/>
 		<label>Area:<br/>
-		<input type="text" size="50" name="area" value="{{agency.area_name or ""}}"></label><br/>
+		<input type="text" size="50" name="area" value="{{escape(agency.area_name or "")}}"></label><br/>
 		<label>Feed Location Url:<br/>
-		<input type="text" size="100" name="feed" value="{{agency.feed_baseurl or ""}}"></label><br/>
+		<input type="text" size="100" name="feed" value="{{escape(agency.feed_baseurl or "")}}"></label><br/>
 		<label>License Agreement Url:<br/>
-		<input type="text" size="100" name="license" value="{{agency.license_url or ""}}"></label><br/>
+		<input type="text" size="100" name="license" value="{{escape(agency.license_url or "")}}"></label><br/>
 		<label>Description (markdown):<br/>
-		<textarea name="description" style="width:700px;height:100px;">{{agency.description or ""}}</textarea>	
+		<textarea name="description" style="width:700px;height:100px;">{{escape(agency.description or "")}}</textarea>	
 		</label><br/>
         
         Official Data: 
@@ -38,19 +38,27 @@
 	</form>
 </fieldset>
 
-<h2>URLS to be crawled</h2>
 
+
+<h2>URLS to be crawled</h2>
 {% for u in crawl_urls %}
 <form action="/a/edit/{{agency.slug}}" method="post">
 	<input type="hidden" name="orig_url" value="{{u.url}}">
 	<fieldset>
-        <small>last crawled {{timesince(u.lastcrawled)}} ago</small><br/>
+	    Current Status: {% if u.enabled %}
+	        <span style="color:green;">Enabled</span> <input type="submit" name="action.disable" value="disable">
+	    {% else %}
+	        <span style="color:red;">Disabled</span> <input type="submit" name="action.enable" value="enable">
+	    {% end %}
+	    <br/>
+        <small>last crawled {{timesince(u.lastcrawled)}} ago</small> <input type="submit" name="action.recrawl" value="queue for recrawl"><br/>
 		<label>URL:<input type="text" name="url" size="100" value="{{u.url}}"/></label><br/>
 		<label>Recurse:<input type="text" name="recurse" size="5"value="{{u.recurse}}"></label><br/>
 		<label>download as:<input type="text" name="download_as" size="45"value="{{u.download_as}}"></label><br/>
 		<label>show url:<input type="checkbox" name="show_url" value="True" {% if u.show_url %} checked {% end %}></label><br/>
 		<label>post text:<input type="text" name="post_text" value="{{u.post_text}}" size="100"></label><br/>
 		<input type="submit" name="action.save.url" value="save"><br/>
+		<br/>
 	</fieldset>
 </form>
 <!-- TODO: show status of this crawl. has it been 404'ing? 304? redirect? -->
