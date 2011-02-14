@@ -4,8 +4,10 @@ from google.appengine.api import memcache
 import datetime
 import logging
 import random
+import urlparse
 import string
 
+import tornado.web
 import app.basic
 import model
 import utils
@@ -49,7 +51,16 @@ def uploadfile(username, agencydata, comments, md5sum, sizeoffile):
         a = None
         if ag.get('agency_url', '').strip():
             ## try to get via url first as it's more unique
-            a = model.Agency.all().filter('url =', ag['agency_url'].strip()).get()
+            url = ag['agency_url'].strip()
+            try:
+                # TODO: use urlnorm
+                url_parsed = urlparse.urlparse(url)
+                if not url_parsed.path:
+                    url += '/'
+            except:
+                logging.exception('unable to parse url')
+            
+            a = model.Agency.all().filter('url =', url).get()
         if not a:
             slug = model.slugify(ag['agency_name'].strip())
             s = utils.lookup_agency_alias(slug)
