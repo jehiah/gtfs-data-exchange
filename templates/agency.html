@@ -49,6 +49,24 @@ inputPane = document.getElementById("comments");
 {{agency.display_description}}
 
 <br clear="right"/>
+
+{% if paginator.pages != 1 %}
+<div class="pagination">
+    <span class="page-links">
+        {% if previous %}
+            <a href="?page={{ previous_page_number }}">&laquo; previous</a>
+        {% end %}
+        <span class="current">
+             Page {{ page }} of {{ paginator.pages }}
+        </span>
+        {% if next %}
+            <a href="?page={{ next_page_number }}">next &raquo;</a>
+        {% end %}
+    </span>
+</div>
+{% end %}
+
+
 {% for msg in messages %}
 <div class="message">
 <p class="meta"><a href="/meta/{{msg.message.key().id()}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.message.user}}/">{{msg.message.user}}</a>  <small>on {{msg.message.date.strftime("%b %d %Y %H:%M")}} Z</small>
@@ -65,6 +83,23 @@ inputPane = document.getElementById("comments");
 {% end %}
 </div>
 
+
+{% end %}
+
+{% if paginator.pages != 1 %}
+<div class="pagination">
+    <span class="page-links">
+        {% if previous %}
+            <a href="?page={{ previous_page_number }}">&laquo; previous</a>
+        {% end %}
+        <span class="current">
+             Page {{ page }} of {{ paginator.pages }}
+        </span>
+        {% if next %}
+            <a href="?page={{ next_page_number }}">next &raquo;</a>
+        {% end %}
+    </span>
+</div>
 {% end %}
 
 

@@ -57,14 +57,36 @@ class AgencyPage(app.basic.BasePublicPage):
         if not agency:
             raise tornado.web.HTTPError(404)
         messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1000)
-        self.render('agency.html', agency=agency, messages=messages)
+
+        paginator = ObjectPaginator(messages, 10, 1)
+        try:
+            page = int(self.get_argument('page', '1'))
+        except ValueError:
+            page = 1
+        if page <= 0:
+            page = 1
+
+        try:
+            records = paginator.get_page(page-1)
+        except:
+            records = paginator.get_page(0)
+            page = 1
+
+        self.render('agency.html', agency=agency, messages=records, 
+                    paginator=paginator,
+                    next=paginator.has_next_page(page-1),
+                    previous=paginator.has_previous_page(page-1),
+                    previous_page_number=page-1,
+                    next_page_number=page+1,
+                    page=page)
+
 
 class FeedPage(app.basic.BasePublicPage):
     def get(self, userOrAgency=None, id=None):
         context = {'userOrAgency':userOrAgency, 'u':id, 'id':id}
         self.response.headers['Content-Type'] = 'application/atom+xml'
         if not userOrAgency:
-            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(30)).order('-date').fetch(25)
+            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)
             self.render('atom.xml', context)
         elif userOrAgency == 'user':
             import urllib
@@ -73,7 +95,7 @@ class FeedPage(app.basic.BasePublicPage):
                 u = users.User(user)
             else:
                 u = users.User(user+'@gmail.com')
-            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(30)).filter('user =', u).order('-date').fetch(25)
+            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(90)).filter('user =', u).order('-date').fetch(15)
             self.render('agency_atom.xml', **context)
         elif userOrAgency == 'agency':
             s = utils.lookup_agency_alias(id)
@@ -82,7 +104,7 @@ class FeedPage(app.basic.BasePublicPage):
 
             agency = model.Agency.all().filter('slug =', id).get()
             context['agency'] = agency
-            context['messages'] = [x.message for x in model.MessageAgency.all().filter('agency =', agency).filter('date >', datetime.datetime.now()-datetime.timedelta(30)).order('-date').fetch(25)]
+            context['messages'] = [x.message for x in model.MessageAgency.all().filter('agency =', agency).filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)]
             self.render('agency_atom.xml', **context)
 
 class UserPage(app.basic.BasePublicPage):
@@ -100,7 +122,7 @@ class UserPage(app.basic.BasePublicPage):
         if not messages and users.get_current_user().email() != u.email():
             raise tornado.web.HTTPError(404)
 
-        paginator = ObjectPaginator(messages, 15, 1)
+        paginator = ObjectPaginator(messages, 10, 1)
         try:
             page = int(self.get_argument('page', '1'))
         except ValueError:
