@@ -166,6 +166,9 @@ class MessageAgency(db.Model):
 
 ## Crawler Stuff
 
+class CrawlerToken(db.Model):
+    token = db.StringProperty(multiline=False)
+
 class CrawlBaseUrl(db.Model):
     url = db.LinkProperty()
     recurse = db.IntegerProperty(default=1)
@@ -177,6 +180,7 @@ class CrawlBaseUrl(db.Model):
     crawl_interval = db.IntegerProperty(default=24)
     lastcrawled = db.DateTimeProperty(auto_now_add=True)
     next_crawl = db.DateTimeProperty(auto_now_add=True)
+    
     def asMapping(self):
         return {'url' : self.url,
                 'recurse' : self.recurse,

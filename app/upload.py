@@ -150,7 +150,7 @@ class UploadFile(app.basic.BasePublicPage):
             return self.response.out.write(e.msg)
         
         self.redirect(redirect_url)
-        
+
 class QueuePage(app.basic.BasePublicPage):
     #@app.basic.login_required
     def get(self):
@@ -159,14 +159,10 @@ class QueuePage(app.basic.BasePublicPage):
         self.render('queue.html')
 
 
-
-
-
-
 class ZipFilePage(app.basic.BasePublicPage):
     def __before__(self, *args):
         pass
-
+    
     def get(self, name):
         key = 'DataFile.name.%s' % name
         f = memcache.get(key)
@@ -174,7 +170,7 @@ class ZipFilePage(app.basic.BasePublicPage):
             f = model.Message.all().filter('filename =', name).get()
             memcache.set(key, f)
         production = self.request.url.find('www.gtfs-data-exchange.com')!= -1
-
+        
         if f:
             return self.redirect(f.filelink(production=production))
         else:

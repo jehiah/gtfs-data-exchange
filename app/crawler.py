@@ -2,6 +2,7 @@
 import datetime
 from functools import wraps
 from google.appengine.api import users
+from google.appengine.api import memcache
 import tornado.web
 
 import app.basic
@@ -11,14 +12,24 @@ import logging
 
 from app.upload import uploadfile, UploadError
 
+
 def crawler_required(method):
+    """Verify access against the CrawlerTokens table. any token that is present is sufficient to grant access"""
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        auth = self.request.headers.get('Authorization', None)
-        logging.info('auth = ' + str(auth))
-        if auth != 'Basic Y3Jhd2xlcjpjcmF3bGVy': ## crawler, crawler
-            self.response.headers['WWW-Authenticate'] = 'Basic realm="RESTRICTED ACCESS"'
-            raise tornado.web.HTTPError(401)
+        auth = self.request.headers.get('X-Crawler-Token', None)
+        if not auth:
+            logging.warning('missing auth header')
+            raise tornado.web.HTTPError(403)
+        
+        logging.info('lookup up X-Crawler-Token=%s' % auth)
+        token = memcache.get('CrawlerToken.%s' % auth)
+        if not token:
+            token = model.CrawlerToken().all().filter('token =', auth).get()
+            memcache.set('CrawlerToken.%s' % auth, token and '1' or '-')
+        if not token or token == '-':
+            logging.info('no token found for %r' % auth)
+            raise tornado.web.HTTPError(403)
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -57,15 +68,15 @@ class CrawlNextUrl(app.basic.BaseController):
     def get(self):
         u = model.CrawlBaseUrl.all().filter('enabled =', True).filter('next_crawl >', datetime.datetime.now()).get()
         if not u:
-            return self.response.out.write('NONE')
-        logging.debug(str('returning ' + str(u.url) + ' to be cralwed'))
+            return self.finish('NONE')
+        logging.debug('returning %r to be cralwed' % u.url)
         u.lastcrawled = datetime.datetime.now()
         if u.crawl_interval:
             u.next_crawl = u.lastcrawled + datetime.timedelta(hours=u.crawl_interval)
         else:
             u.next_crawl = u.lastcrawled + datetime.timedelta(hours=24)
         u.put()
-        self.response.out.write(str(u.asMapping()))
+        self.finish(u.asMapping())
 
 class CrawlHeaders(app.basic.BaseController):
     @crawler_required
@@ -73,8 +84,8 @@ class CrawlHeaders(app.basic.BaseController):
         url = self.get_argument('url', '')
         c = model.CrawlUrl.all().filter('url =', url).order('-lastseen').get()
         if not c:
-            return self.response.out.write('NONE')
-        self.response.out.write(c.headers)
+            return self.finish('NONE')
+        self.finish(c.headers)
     
     @crawler_required
     def post(self):
@@ -83,7 +94,7 @@ class CrawlHeaders(app.basic.BaseController):
         c.url = url
         c.headers = self.request.POST['headers']
         c.save()
-        self.response.out.write('OK')
+        self.finish('OK')
 
 class CrawlShouldSkip(app.basic.BaseController):
     @crawler_required
@@ -93,8 +104,8 @@ class CrawlShouldSkip(app.basic.BaseController):
         if c:
             c.lastseen = datetime.datetime.now()
             c.put()
-            return self.response.out.write('YES')
-        self.response.out.write('NO')
+            return self.finish('YES')
+        self.finish('NO')
 
 class CrawlUndoLastRun(app.basic.BaseController):
     @crawler_required
@@ -112,18 +123,18 @@ class CrawlUndoLastRun(app.basic.BaseController):
             b +=1
             u.delete()
         
-        self.response.out.write('%d %d' % (a, b))
+        self.finish('%d %d' % (a, b))
 
 class CrawlUpload(app.basic.BaseController):
     @crawler_required
     def get(self):
         md5sum = self.get_argument('md5sum', '')
         if md5sum and model.Message.all().filter('md5sum =', md5sum).count() >0:
-            self.response.out.write('FOUND')
+            self.finish('FOUND')
         elif md5sum and model.SkipMd5.all().filter('md5sum =', md5sum).count() >0:
-            self.response.out.write('FOUND-skipped')
+            self.finish('FOUND-skipped')
         else:
-            self.response.out.write('NOT_FOUND')
+            self.finish('NOT_FOUND')
     
     ## don't require crawler here so we don't have to double post
     def post(self):
@@ -136,5 +147,5 @@ class CrawlUpload(app.basic.BaseController):
         try:
             filename = uploadfile(username=username, agencydata=agencydata, comments=comments, md5sum=md5sum, sizeoffile=sizeoffile)
         except UploadError, e:
-            return self.response.out.write('ERROR : ' + str(e.msg))
-        return self.response.out.write('RENAME:'+filename)
+            return self.finish('ERROR : ' + str(e.msg))
+        return self.finish('RENAME:'+filename)

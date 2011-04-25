@@ -12,9 +12,7 @@
 import base64
 import hmac
 import httplib
-import re
 import sha
-import sys
 import time
 import urllib
 import urlparse
@@ -96,7 +94,6 @@ def merge_meta(headers, metadata):
 
 # builds the query arg string
 def query_args_hash_to_string(query_args):
-    query_string = ""
     pairs = []
     for k, v in query_args.items():
         piece = k

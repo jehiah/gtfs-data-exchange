@@ -33,7 +33,7 @@ def get_recent_messages():
     return recent_messages
 
 def get_agency_crawl_urls(agency):
-    messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(15)
+    messages = model.MessageAgency.all().filter('agency', agency).order('-date').fetch(15)
     archivers = []
     for msg in messages:
         user = str(msg.message.user)
