@@ -1,6 +1,11 @@
 import base64
-import hmac, sha,sys
-from s3settings import AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
+import hmac, sys
+import hashlib
+from s3settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+
+# NOTE: FOR SOME REASON THIS ISN'T WORKING
+# USE http://s3.amazonaws.com/doc/s3-example-code/post/post_sample.html
+
 l = '--local' in sys.argv
 params = {
     'url':(l and "http://localhost:8081" or "http://www.gtfs-data-exchange.com"),
@@ -14,18 +19,17 @@ policy_document = """
     ["starts-with", "$key", "queue/"],
     {"acl": "private"},
     {"success_action_redirect": "%(url)s/queue"},
-    ["starts-with", "$Content-Type", ""],
+    ["eq", "$Content-Type", "application/zip"],
     ["content-length-range", 0, 31457280],
     ["starts-with","$x-amz-meta-user",""],
     ["starts-with","$x-amz-meta-comments",""]
     ]
 }
 """ % params
+print policy_document
+policy = base64.b64encode(policy_document.strip())
 
-policy = base64.b64encode(policy_document)
-
-signature = base64.b64encode(
-    hmac.new(AWS_SECRET_ACCESS_KEY, policy, sha).digest())
+signature = base64.b64encode(hmac.new(AWS_SECRET_ACCESS_KEY, policy, hashlib.sha1).digest())
     
 print policy
 print "-"*50
