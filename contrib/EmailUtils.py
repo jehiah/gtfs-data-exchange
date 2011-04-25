@@ -1,4 +1,7 @@
-import smtplib,mimetypes,StringIO,MimeWriter
+import smtplib
+import mimetypes
+import StringIO
+import MimeWriter
 import markdown
 
 def sendEmail(toemail,subject,text,fromAddress="jehiah+gtfs-data-exchange@gmail.com"):

@@ -36,8 +36,9 @@ class Crawler:
         else:
             self.bucket = 'gtfs'
             self.homebase = 'http://www.gtfs-data-exchange.com/'
-            self.homebase = 'http://5.gtfs-data-exchange.appspot.com/'
+            self.homebase = 'http://6.gtfs-data-exchange.appspot.com/'
 
+        logging.info('remote endpoint is %s' % self.homebase)
         self.opener = urllib2.build_opener(MultipartPostHandler.MultipartPostHandler)
         self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (gtfs feed crawler http://www.gtfs-data-exchange.com/)')]
         urllib2.install_opener(self.opener)

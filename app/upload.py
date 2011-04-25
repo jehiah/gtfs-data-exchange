@@ -129,12 +129,12 @@ class UploadFile(app.basic.BasePublicPage):
     def post(self):
         if 'upload_file' not in self.request.POST:
             self.error(400)
-            self.response.out.write("file not specified!")
+            self.finish("file not specified!")
             return
         if (self.get_argument('upload_file', None) is None or
            not self.get_argument('upload_file', None).filename):
             self.error(400)
-            self.response.out.write("file not specified!")
+            self.finish("file not specified!")
             return
         
         name = self.get_argument('upload_file').filename
@@ -147,7 +147,7 @@ class UploadFile(app.basic.BasePublicPage):
             redirect_url = uploadfile(username=users.get_current_user(), filename=name, filedata=filedata, contentType=contentType, comments=self.get_argument('comments', ''))
         except UploadError, e:
             self.error(400)
-            return self.response.out.write(e.msg)
+            return self.finish(e.msg)
         
         self.redirect(redirect_url)
 
