@@ -34,15 +34,6 @@ class BaseController(tornado.web.RequestHandler):
         self.set_header("Allow", "GET")
         raise tornado.web.HTTPError(405)
     
-    # def errorb(self, errorcode, message='an error occured'):
-    #     if errorcode == 404:
-    #         message = 'Sorry, we were not able to find the requested page.  We have logged this error and will look into it.'
-    #     elif errorcode == 403:
-    #         message = 'Sorry, that page is reserved for administrators.  '
-    #     elif errorcode == 500:
-    #         message = "Sorry, the server encountered an error.  We have logged this error and will look into it."
-    #     return self.render('error.html', {'message':message})
-    
     def get_login_url(self):
         return users.create_login_url(self.request.full_url())
     
@@ -63,8 +54,6 @@ class BasePublicPage(BaseController):
     """
     Do all the common public page prep such as nav pages etc
     """
-    # def __before__(self, *args):
-    #     self.template_vals.update({'baseurl':self.request.url[:self.request.url.find('/', 7)]})
 
 class BaseAPIPage(BaseController):
     def get(self):
@@ -93,20 +82,16 @@ class BaseAPIPage(BaseController):
             self.finish(buffer.getvalue())
             return
             
-        out_data = {
-            'status_code':status_code,
-            'status_txt':status_txt,
-            'data':data
-        }
+        response = dict(status_code=status_code, status_txt=status_txt, data=data)
         callback = self.get_argument('callback', None)
         if callback:
             self.set_header("Content-type", 'application/jsonp')
             self.write(callback+'(')
-            self.write(out_data)
+            self.write(response)
             self.finish(')')
         else:
             self.set_header("Content-type", 'application/javascript')
-            self.finish(out_data)
+            self.finish(response)
 
 def _utf8(value):
     if value is None:

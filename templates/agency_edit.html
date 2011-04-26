@@ -64,9 +64,9 @@
 <!-- TODO: show status of this crawl. has it been 404'ing? 304? redirect? -->
 {% end %}
 
-<p>New Crawl URL:</p>
 <form action="/a/edit/{{agency.slug}}" method="post">
 	<fieldset>
+	    <legend>New Crawl Url:</legend>
 		<label>URL:<input type="text" name="url" size="100" value=""/></label><br/>
 		<label>Recurse:<input type="text" name="recurse" size="5"value="1"></label><br/>
 		<label>download as:<input type="text" name="download_as" size="45"value="{{agency.slug}}-archiver"></label><br/>

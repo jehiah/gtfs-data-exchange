@@ -12,7 +12,7 @@ import logging
 
 import markdown
 import MultipartPostHandler
-from s3settings import AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
+from s3settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 class StopNow:
     pass

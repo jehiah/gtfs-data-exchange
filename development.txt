@@ -18,19 +18,22 @@ To dump the dev datastore startup with --clear-datastore
 
     rm bulkloader-*
 
-# note: this deletes existing data first, but does not require admin access to gtfs-data-exchange
+# load a copy of agency data only
+    
+    note: this deletes existing data first, but does not require admin access to gtfs-data-exchange
 
+    $ cd scripts
     $ python bulk_load.py
 
 # crawl a file and queue it for upload
 
     $ cd contrib
-    $ python gtfs_crawler.py --allow-upload --shunt http://www.yourdomain.com/path/to/google_transit.zip
+    $ python gtfs_crawler.py --crawl_url=http://www.yourdomain.com/path/to/google_transit.zip --token="asdf"
 
 # process the zip file
 
     $ cd contrib
-    $ python BackgroundProcessor.py
+    $ python background_processor.py --token="asdf"
 
 # New Data Workflow
 
@@ -39,8 +42,8 @@ GTFS File uploads follow an odd chain of events
 a) gtfs_crawler.py queries /crawl/next_url and fetches the next url to crawl (and metadata)
 a) gtfs_crawler.py recursively crawls and sends any zip files to S3 with a name of queue/{{timestamp}} (and attaching metadata)
 b) user uploads directly to S3 w/ name of queue/{{timestamp}} and some metadata
-* BackgroundProcessor.py queries S3 for entries starting with queue/, downloads/extracts the s3 metadata, content and validates it as a gtfs file
-* BackgroundProcessor.py uploads content and s3 metadata to /crawl/upload and gets back the name of the file
+* background_processor.py queries S3 for entries starting with queue/, downloads/extracts the s3 metadata, content and validates it as a gtfs file
+* background_processor.py uploads metadata to /crawl/upload and gets back the name of the file
 * /crawl/upload makes a Message, and a MessageAgency linking to all agencies in the agency.txt file (creating agencies as needed)
-* BackgroundProcessor.py renames the file on S3, and sends an email
+* background_processor.py renames the file on S3, and sends an email
 

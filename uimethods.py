@@ -1,16 +1,9 @@
 from markdown import Markdown
 import datetime
-import logging
        
 def markdown(module, value):
     m = Markdown()
     return m.convert(_utf8(value))
-
-def _utf8(s):
-    if isinstance(s, unicode):
-        return s.encode("utf-8")
-    assert isinstance(s, str)
-    return s
 
 def timesince(module, value):
     # TODO: implemnt this
@@ -26,3 +19,9 @@ def filesizeformat(module, value):
     if not value:
         return ''
     return '%d' % value
+
+def _utf8(s):
+    if isinstance(s, unicode):
+        return s.encode("utf-8")
+    assert isinstance(s, str)
+    return s
