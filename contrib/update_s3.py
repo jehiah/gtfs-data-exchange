@@ -19,7 +19,6 @@ import mimetypes
 import os.path
 import sys
 import S3 # Get this from Amazon
-from s3settings import AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
 BUCKET_NAME = 'gtfs'
 
 def update_s3():

@@ -169,7 +169,7 @@ class ZipFilePage(app.basic.BasePublicPage):
         if not f:
             f = model.Message.all().filter('filename =', name).get()
             memcache.set(key, f)
-        production = self.request.url.find('www.gtfs-data-exchange.com')!= -1
+        production = self.request.url.find('www.gtfs-data-exchange.com') != -1
         
         if f:
             return self.redirect(f.filelink(production=production))

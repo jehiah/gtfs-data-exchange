@@ -18,7 +18,6 @@ import simplejson as json
 import BeautifulSoup
 import MultipartPostHandler
 import S3
-from s3settings import AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
 
 random.seed()
 
@@ -43,7 +42,6 @@ class Crawler:
         self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (gtfs feed crawler http://www.gtfs-data-exchange.com/)')]
         urllib2.install_opener(self.opener)
         self.seenlinks = []
-        self.conn = S3.AWSAuthConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
         self.totalsleep = 0.0
         self.start_time = time.time()
         self.totalurls = 0
@@ -51,11 +49,20 @@ class Crawler:
         self.totaldownload = 0
         self.errorurls = 0
         self.exit = False
+        self.connect_s3()
+    
+    def connect_s3(self):
+        if tornado.options.options.environment != "prod":
+            logging.info('skipping s3 connection. environment != prod')
+            return
+        aws_access_key_id = tornado.options.options.aws_key
+        aws_secret_access_key = tornado.options.options.aws_secret
+        self.conn = S3.AWSAuthConnection(aws_access_key_id, aws_secret_access_key)
 
-    def isSpecialUrl(self,url):
+    def is_special_url(self,url):
         return {'http://www2.septa.org/developer':'septa'}.get(url,None)
     
-    def getNextCrawlUrl(self):
+    def get_next_crawl_url(self):
         if self.exit:
             raise StopNow()
         
@@ -121,8 +128,8 @@ class Crawler:
         req.add_header('X-Crawler-Token', tornado.options.options.token)
         return urllib2.urlopen(req)
     
-    def crawlSpecial(self,url,settings):
-        agency = self.isSpecialUrl(url)
+    def craw_special(self,url,settings):
+        agency = self.is_special_url(url)
         if agency != 'septa':
             return
         url = 'http://www2.septa.org/developer/download.php?fc=septa_gtfs.zip&download=download'
@@ -156,7 +163,7 @@ class Crawler:
         self.crawlLocalDir(localdir,settings,"septa:")
             
     
-    def crawlFtp(self, url, settings):
+    def crawl_ftp(self, url, settings):
         ## parse the url
         ## run ftpmirror.py
         ## get the zip files and check the md5's
@@ -209,7 +216,7 @@ class Crawler:
         logging.info('has %r been uploaded before? %r' % (md5sum, already_uploaded))
         return already_uploaded
     
-    def getNextUploadKey(self):
+    def get_next_upload_key(self):
         randstring = ''.join([random.choice(string.letters+string.digits) for x in range(20)])
         return 'queue/'+str(datetime.datetime.now())+'-'+randstring+'.zip'
         
@@ -222,8 +229,8 @@ class Crawler:
         for filename in files:
             shortname = filename.replace(localdir+'/','')
             
-            d = open(filename,'rb').read()
-            md5sum = hashlib.md5(d).hexdigest()
+            file_contents = open(filename,'rb').read()
+            md5sum = hashlib.md5(file_contents).hexdigest()
             if self.is_already_uploaded(md5sum):
                 # note, we could save this file to our meta folder
                 logging.info('already uploaded %s/%s' % (desc, shortname))
@@ -233,14 +240,35 @@ class Crawler:
                 logging.info('<fake> uploading %s/%s' % (desc, shortname))
                 continue
             
-            nextkey = self.getNextUploadKey()
-
-            o = S3.S3Object(d)
-            o.metadata['user']=settings['download_as'] + '@gmail.com'
-            o.metadata['gtfs_crawler']='t'
-            o.metadata['comments'] = settings.get('post_text','') % {'filename':shortname}
-            self.conn.put(self.bucket,nextkey,o)
+            nextkey = self.get_next_upload_key()
+            
+            user = settings['download_as'] + '@gmail.com'
+            comments = settings.get('post_text','') % {'filename':shortname}
+            self.save_gtfs_file(file_contents, user, gtfs_crawler='t', comments=comments, filename=nextkey)
             logging.info('==> uploaded %s/%s as %s' % (desc, shortname, nextkey))
+            
+    def save_gtfs_file(self, contents, user, gtfs_crawler, comments, filename):
+        if filename.startswith("queue/"):
+            filename = filename[len("queue/"):]
+        assert '@' in user
+        # if setting is prod
+        if tornado.options.options.environment=="dev":
+            if not os.path.exists("/tmp/gtfs_s3/queue"):
+                os.makedirs("/tmp/gtfs_s3/queue")
+            filename = os.path.join("/tmp/gtfs_s3/queue", filename)
+            logging.info('writing %s' % filename)
+            f = open(filename, 'wb')
+            f.write(contents)
+            f.close()
+            f = open(filename + '.meta', 'wb')
+            f.write(json.dumps(dict(user=user, gtfs_crawler=gtfs_crawler, comments=comments)))
+            f.close()
+        else:
+            obj = S3.S3Object(contents)
+            obj.metadata['user'] = user
+            obj.metadata['gtfs_crawler']=gtfs_crawler
+            obj.metadata['comments'] = comments
+            self.conn.put(self.bucket, filename, obj)
         
     def should_skip_url(self,url):
         ## check the server to see if it's skipped there
@@ -309,9 +337,9 @@ class Crawler:
             return
         self.seenlinks.append(url)
         if url.startswith('ftp://'):
-            return self.crawlFtp(url,settings)
-        if self.isSpecialUrl(url):
-            return self.crawlSpecial(url,settings)
+            return self.crawl_ftp(url,settings)
+        if self.is_special_url(url):
+            return self.craw_special(url,settings)
 
         logging.debug('-+ %r recurse: %r' % (url, settings['recurse']))
         
@@ -321,7 +349,7 @@ class Crawler:
             return
         
         try:
-            d = self.getUrl(url, referer)
+            url_contents = self.getUrl(url, referer)
         except DownloadError, e:
             return
         except:
@@ -338,33 +366,31 @@ class Crawler:
             self.totaldownload +=1
             
             ## check if the md5 already exists
-            md5sum = hashlib.md5(d).hexdigest()
+            md5sum = hashlib.md5(url_contents).hexdigest()
             if self.is_already_uploaded(md5sum):
                 logging.info('already uploaded %r' % url)
                 return
             
-            nextkey = self.getNextUploadKey()
+            nextkey = self.get_next_upload_key()
             
             if tornado.options.options.skip_uploads:
                 logging.info('<fake> uploading as %s' % nextkey)
                 return
             
-            o = S3.S3Object(d)
-            o.metadata['user']=settings['download_as'] + '@gmail.com'
-            o.metadata['gtfs_crawler']='t'
+            user = settings['download_as'] + '@gmail.com'
             if settings['show_url']:
-                o.metadata['comments']='Archived from %s' % url
+                comments='Archived from %s' % url
             else:
-                o.metadata['comments']=''
+                comments=''
             if settings['post_text']:
-                o.metadata['comments'] += settings['post_text']
-            self.conn.put(self.bucket,nextkey,o)
+                comments += settings['post_text']
+            self.save_gtfs_file(url_contents, user, gtfs_crawler='t', comments=comments, filename=nextkey)
             logging.info('uploaded %r as %r' % (url, nextkey))
             return
 
         ## find links
         try:
-            soup = BeautifulSoup.BeautifulSoup(d)
+            soup = BeautifulSoup.BeautifulSoup(url_contents)
             for a in soup.findAll('a'):
                 h = a['href']
                 t = h
@@ -410,7 +436,7 @@ class Crawler:
     def run(self):
         while True:
             try:
-                url, settings = self.getNextCrawlUrl()
+                url, settings = self.get_next_crawl_url()
                 self.crawl(url, settings)
             except StopNow, e:
                 logging.info("got stop command")
@@ -437,6 +463,8 @@ def main():
     tornado.options.define('token', type=str, help="crawler access token")
     tornado.options.define('crawl_url', type=str, help="a specific URL to crawl (note default settings will apply)")
     tornado.options.define('skip_uploads', type=bool, default=False, help="skip uploading files")
+    tornado.options.define('aws_key', type=str)
+    tornado.options.define('aws_secret', type=str)
     # shunt
     # undo-last
     tornado.options.parse_command_line()
@@ -446,9 +474,6 @@ def main():
         sys.exit(1)
     
     c = Crawler()
-
-    # if '--undo-last' in sys.argv:
-    #     c.undoLastRun()
     c.run()
 
 if __name__ == "__main__":

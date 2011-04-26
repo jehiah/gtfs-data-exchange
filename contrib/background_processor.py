@@ -1,18 +1,19 @@
-import S3
-import os
-import sys
-import urllib2
-import time
+import glob
 import hashlib
-import zipfile
-import StringIO
-import EmailUtils
-import tornado.options
 import logging
+import os
+import S3
+import simplejson as json
+import StringIO
+import sys
+import time
+import tornado.options
+import urllib2
+import zipfile
 
 import markdown
+import EmailUtils
 import MultipartPostHandler
-from s3settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 class StopNow:
     pass
@@ -22,11 +23,14 @@ class DeleteKey:
         self.key = key
         self.msg = msg
 
+class DevObj(object):
+    def __init__(self, contents, metadata):
+        self.data = contents
+        self.metadata = metadata
 
 class BackgroundProcessor:
     def __init__(self):
         if tornado.options.options.environment == "dev":
-            self.bucket = 'gtfs-devel'
             self.homebase = 'http://localhost:8085/'
         else:
             self.bucket = 'gtfs'
@@ -42,7 +46,13 @@ class BackgroundProcessor:
         self.markdown = markdown.Markdown()
         
     def reconnect(self):
-        self.conn = S3.AWSAuthConnection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+        if tornado.options.options.environment != "prod":
+            logging.info('skipping connection to s3. environment != prod')
+            return
+        
+        aws_access_key_id = tornado.options.options.aws_key
+        aws_secret_access_key = tornado.options.options.aws_secret
+        self.conn = S3.AWSAuthConnection(aws_access_key_id, aws_secret_access_key)
 
     def sendSuccessEmail(self, filename, metadata):
         email = metadata.get('user','')
@@ -76,8 +86,11 @@ You can view this file along with your comments at
             EmailUtils.sendEmail('jehiah+gtfsarchiver@gmail.com','GTFS File Uploaded','%(filename)s was uploaded by %(nickname)s' % {'filename':filename,'nickname':nickname,'comments':comments})
         
 
-    def sendErrorEmail(self,key,msg):
-        metadata = self.conn.head(self.bucket,key).object.metadata
+    def send_error_email(self, key, msg):
+        if tornado.options.options.environment == "dev":
+            metadata = json.loads(open("/tmp/gtfs_s3/queue/" + key + ".meta", "rb").read())
+        else:
+            metadata = self.conn.head(self.bucket, key).object.metadata
         email = metadata.get('user','')
         if not email:
             logging.info('no email stored for key %r error %r' % (key, msg))
@@ -95,20 +108,29 @@ Please correct the error and re-try this upload.
 """ % msg
         EmailUtils.sendEmail(email,'GTFS Upload Error',text)
             
-
+    def remove_queue_file(self, key):
+        if tornado.options.options.environment=="dev":
+            filename = os.path.join("/tmp/gtfs_s3/queue", key)
+            logging.debug('removing %s' % filename)
+            os.unlink(filename)
+            os.unlink(filename + ".meta")
+        else:
+            logging.debug('removing %s from s3' % key)
+            self.conn.delete(self.bucket, key)
+            
     def run(self):
         while True:
             try:
-                for i in self.getItems():
+                for key, obj in self.get_items():
                     try:
-                        self.handleItem(i)
+                        self.handle_item(key, obj)
                     except StopNow, e:
                         return
                     except DeleteKey, e:
-                        self.sendErrorEmail(e.key, e.msg)
-                        self.conn.delete(self.bucket, e.key)
+                        self.send_error_email(e.key, e.msg)
+                        self.remove_queue_file(e.key)
                     except:
-                        logging.exception('error on handleItem')
+                        logging.exception('error on handle_item')
                         raise
                         self.reconnect()
             except StopNow, e:
@@ -119,9 +141,26 @@ Please correct the error and re-try this upload.
             logging.info('sleeping %d' % tornado.options.options.loop_sleep_interval)
             time.sleep(tornado.options.options.loop_sleep_interval)
 
-    def getItems(self):
+    def get_items(self):
+        if tornado.options.options.environment == "dev":
+            # emulate s3 based on the filesystem
+            for filename in glob.glob("/tmp/gtfs_s3/queue/*.meta"):
+                logging.info('found %r' % filename)
+                key = os.path.basename(filename)[:-1 *len(".meta")]
+                meta_file = filename
+                content_file = filename[:-1 *len(".meta")]
+                logging.info("content_file %r" % content_file)
+                assert os.path.exists(meta_file)
+                assert os.path.exists(content_file)
+                
+                file_contents = open(content_file, "rb").read()
+                metadata = json.loads(open(meta_file, 'rb').read())
+                obj = DevObj(file_contents, metadata)
+                yield(key, obj)
+            return
+                
         for x in self.conn.list_bucket(self.bucket,{'prefix':'queue/'}).entries:
-            yield (x.key,self.conn.get(self.bucket,x.key).object)
+            yield (x.key, self.conn.get(self.bucket, x.key).object)
             logging.info('sleeping %d' % tornado.options.options.upload_sleep_interval)
             time.sleep(tornado.options.options.upload_sleep_interval)
 
@@ -134,8 +173,7 @@ Please correct the error and re-try this upload.
         req.add_header('X-Crawler-Token', tornado.options.options.token)
         return urllib2.urlopen(req)
         
-    def handleItem(self, obj):
-        (key, obj) = obj
+    def handle_item(self, key, obj):
         logging.debug('handling %r %r' % (key, obj.metadata))
         ## obj has .data and .metadata
         ## .metatdata should be {'user':'me@google.com','comments':'this is a great upload'}
@@ -172,10 +210,20 @@ Please correct the error and re-try this upload.
         ## if we got 'RENAME:' then rename the file
         if data.startswith('RENAME'):
             newname = data.replace('RENAME:','')
-            self.conn.put(self.bucket, newname, None, {'x-amz-copy-source':'/'+self.bucket+'/'+key})
-            self.conn.put_acl(self.bucket, newname, '<?xml version="1.0" encoding="UTF-8"?>\n<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>cf511b009c358c488b479aaf97b797d7d8813e64885c8c331c7371efbb9c7067</ID><DisplayName>jehiah</DisplayName></Owner><AccessControlList><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser"><ID>cf511b009c358c488b479aaf97b797d7d8813e64885c8c331c7371efbb9c7067</ID><DisplayName>jehiah</DisplayName></Grantee><Permission>FULL_CONTROL</Permission></Grant><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group"><URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission></Grant></AccessControlList></AccessControlPolicy>')
-            logging.info('renamed %r to %r' % (key, newname))
-            self.conn.delete(self.bucket, key)
+            
+            if tornado.options.options.environment=="dev":
+                # emulate the remote copy
+                filename = os.path.join("/tmp/gtfs_s3/queue", key)
+                new_filename = os.path.join("/tmp/gtfs_s3", newname)
+                logging.debug('renaming %r to %r' % (filename, new_filename))
+                os.rename(filename, new_filename)
+                os.unlink(filename + ".meta")
+            else:
+                self.conn.put(self.bucket, newname, None, {'x-amz-copy-source':'/'+self.bucket+'/'+key})
+                self.conn.put_acl(self.bucket, newname, '<?xml version="1.0" encoding="UTF-8"?>\n<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>cf511b009c358c488b479aaf97b797d7d8813e64885c8c331c7371efbb9c7067</ID><DisplayName>jehiah</DisplayName></Owner><AccessControlList><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser"><ID>cf511b009c358c488b479aaf97b797d7d8813e64885c8c331c7371efbb9c7067</ID><DisplayName>jehiah</DisplayName></Grantee><Permission>FULL_CONTROL</Permission></Grant><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group"><URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission></Grant></AccessControlList></AccessControlPolicy>')
+                logging.info('renamed %r to %r' % (key, newname))
+                self.conn.delete(self.bucket, key)
+            
             # save for future use locally
             if not os.access('/tmp/gtfs/', os.R_OK):
                 os.mkdir('/tmp/gtfs')
@@ -183,7 +231,7 @@ Please correct the error and re-try this upload.
             outfile.write(obj.data)
             outfile.close()
 
-            self.sendSuccessEmail(newname,obj.metadata)
+            self.sendSuccessEmail(newname, obj.metadata)
             return
         logging.debug('response was %r' % data)
         raise DeleteKey(key, data)

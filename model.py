@@ -141,7 +141,7 @@ class Message(db.Model):
         if production == True:
             return 'http://gtfs.s3.amazonaws.com/' + self.filename
         elif production == False:
-            return 'http://gtfs-devel.s3.amazonaws.com/' + self.filename
+            return 'file:///tmp/gtfs_s3/' + self.filename
         else:
             return "/gtfs/"+ (self.filename or '')
     

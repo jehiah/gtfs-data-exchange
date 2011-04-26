@@ -1,7 +1,6 @@
 import base64
 import hmac, sys
 import hashlib
-from s3settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 # NOTE: FOR SOME REASON THIS ISN'T WORKING
 # USE http://s3.amazonaws.com/doc/s3-example-code/post/post_sample.html
