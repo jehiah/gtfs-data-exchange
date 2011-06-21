@@ -1,4 +1,5 @@
 import S3,os,sys
+import csv
 import urllib2
 import time
 import md5
@@ -128,6 +129,16 @@ Please correct the error and re-try this upload.
                 print sys.exc_info()[0],sys.exc_info()[1]
             print "sleeping"
             time.sleep(120)
+            
+    def get_bounds(self, stops):
+        reader = csv.DictReader(StringIO.StringIO(stops))
+        max_lat, max_lng, min_lat, min_lng = -999, -999, 999, 999
+        for row in reader:
+            max_lat = max(max_lat, float(row['stop_lat']))
+            max_lng = max(max_lng, float(row['stop_lon']))
+            min_lat = min(min_lat, float(row['stop_lat']))
+            min_lng = min(min_lng, float(row['stop_lon']))
+        return max_lat, max_lng, min_lat, min_lng
 
     def getItems(self):
         for x in self.conn.list_bucket(self.bucket,{'prefix':'queue/'}).entries:
@@ -148,6 +159,7 @@ Please correct the error and re-try this upload.
             print "bad zip archive",key,obj.metadata
             raise DeleteKey(key,"GTFS .zip Archive is invalid")
         agencydata = None
+        bounds = "", "", "", ""
         for n in z.namelist():
             if n.find('_vti_') != -1:
                 continue
@@ -155,7 +167,8 @@ Please correct the error and re-try this upload.
                 print "reading for",n
                 agencydata = z.read(n)
                 print agencydata
-                break
+            if n == 'stops.txt' or n.endswith('/stops.txt'):
+                bounds = self.get_bounds(z.read(n))
         if not agencydata:
             print "no agency.txt data",key,obj.metadata,z.namelist()
             raise DeleteKey(key,"agency.txt file is missing or invalid in GTFS .zip archive")
@@ -167,7 +180,8 @@ Please correct the error and re-try this upload.
                       'comments':obj.metadata.get('comments',''),
                       'sizeoffile':len(obj.data),
                       'md5sum':md5.md5(obj.data).hexdigest(),
-                      'agencydata':agencydata})
+                      'agencydata':agencydata,
+                      'bounds': "|".join(bounds)})
         r= urllib2.urlopen(req).read()
         ## if we got 'RENAME:' then rename the file
         if r.startswith('RENAME'):

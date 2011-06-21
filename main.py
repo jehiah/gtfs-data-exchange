@@ -538,7 +538,7 @@ class UploadError(Exception):
         return str(self.msg)
 
 
-def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
+def uploadfile(username, agencydata, bounds, comments, md5sum, sizeoffile):
     ## todo: cache
     if model.Message.all().filter('md5sum =',md5sum).count() >0:
         raise UploadError('This file has previously been uploaded')
@@ -557,6 +557,17 @@ def uploadfile(username,agencydata,comments,md5sum,sizeoffile):
     # m.filename = filename
     m.md5sum = md5sum
     m.size = sizeoffile
+    bounds = bounds.split("|")
+    try:
+        m.max_lat = float(bounds[0])
+        m.max_lng = float(bounds[1])
+        m.min_lat = float(bounds[2])
+        m.min_lng = float(bounds[3])
+    except ValueError:
+        m.max_lat = None
+        m.max_lng = None
+        m.min_lat = None
+        m.min_lng = None
     m.put()
     
     d = datetime.datetime.now()
@@ -842,12 +853,15 @@ class CrawlUpload(BaseController):
     def post(self):
         ## file is in upload_file
         agencydata = self.request.POST.get('agencydata')
+        bounds = self.request.POST.get('bounds')
         comments = self.request.POST.get('comments')
         username = users.User(self.request.POST.get('user'))
         md5sum = self.request.POST.get('md5sum')
         sizeoffile = int(self.request.POST.get('sizeoffile'))
         try:
-            filename = uploadfile(username=username,agencydata=agencydata,comments=comments,md5sum=md5sum,sizeoffile=sizeoffile)
+            filename = uploadfile(username=username, agencydata=agencydata,
+                    bounds=bounds, comments=comments, md5sum=md5sum,
+                    sizeoffile=sizeoffile)
         except UploadError, e:
             return self.response.out.write('ERROR : ' + str(e.msg))
         return self.response.out.write('RENAME:'+filename)

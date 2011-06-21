@@ -103,7 +103,11 @@ class Message(db.Model):
     validation_results = db.TextProperty(default='')
     validated = db.BooleanProperty(default=False)
     validated_on = db.DateTimeProperty()
-
+    max_lat = db.FloatProperty()
+    max_lng = db.FloatProperty()
+    min_lat = db.FloatProperty()
+    min_lng = db.FloatProperty()
+    
     def agencies(self):
         a = getattr(self,'_agencies',None)
         #logging.debug('getattr' + str(a))
