@@ -114,6 +114,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
             else:
                 c = model.CrawlBaseUrl()
                 c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
+                c.next_crawl = datetime.datetime.now() + datetime.timedelta(minutes=10)
                 # c.agency = agency
             c.url = self.get_argument('url')
             c.recurse = int(self.get_argument('recurse'))
@@ -158,6 +159,7 @@ class CommentAdminPage(app.basic.BasePublicPage):
         if not obj:
             raise tornado.web.HTTPError(404)
         self.render('comment_admin.html', msg=obj)
+    
     @app.basic.admin_required
     def post(self, key=None):
         try:

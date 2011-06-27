@@ -55,6 +55,7 @@ class CrawlerMain(app.basic.BaseController):
         else:
             c = model.CrawlBaseUrl()
             c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
+            c.next_crawl = datetime.datetime.now() + datetime.timedelta(minutes=10)
         c.url = self.get_argument('url')
         c.recurse = int(self.get_argument('recurse'))
         c.download_as = self.get_argument('download_as', 'gtfs-archiver')
@@ -66,11 +67,44 @@ class CrawlerMain(app.basic.BaseController):
 class CrawlerEdit(app.basic.BaseController):
     @app.basic.admin_required
     def get(self, archiver):
+        logging.info('getting crawler urls for %s' % archiver)
         crawl_urls = utils.get_archiver_crawler_urls(archiver)
         if not crawl_urls:
             raise tornado.web.HTTPError(404)
         self.render('crawler_edit.html', archiver=archiver, crawl_urls=crawl_urls, error=None)
     
+    @app.basic.admin_required
+    def post(self, archiver):
+        if self.get_argument('action.enable', None):
+            url = self.get_argument('orig_url')
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            c.enabled = True
+            c.put()
+            return self.redirect('/a/crawler/' + c.download_as)
+
+        elif self.get_argument('action.disable', None):
+            url = self.get_argument('orig_url')
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            c.enabled = False
+            c.put()
+            return self.redirect('/a/crawler/' + c.download_as)
+        
+        url = self.get_argument('orig_url', '')
+        if url:
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+        else:
+            c = model.CrawlBaseUrl()
+            c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
+            c.next_crawl = datetime.datetime.now() + datetime.timedelta(minutes=10)
+            # c.agency = agency
+        c.url = self.get_argument('url')
+        c.recurse = int(self.get_argument('recurse'))
+        c.download_as = self.get_argument('download_as', 'gtfs-archiver')
+        c.show_url = self.get_argument('show_url', True) == 'True'
+        c.post_text = self.get_argument('post_text', '')
+        c.put()
+        return self.redirect('/a/crawler/' + c.download_as)
+        
 
 class CrawlNextUrl(app.basic.BaseController):
     @crawler_required

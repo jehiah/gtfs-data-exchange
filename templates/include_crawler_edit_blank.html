@@ -1,0 +1,9 @@
+<fieldset>
+    <legend>New Crawl Url:</legend>
+	<label>URL:<input type="text" name="url" size="100" value=""/></label><br/>
+	<label>Recurse:<input type="text" name="recurse" size="5"value="1"></label><br/>
+	<label>download as:<input type="text" name="download_as" size="45"value="{% if "archiver" in globals() %}{{escape(archiver)}}{% else %}{{escape(agency.slug)}}-archiver{% end %}"></label><br/>
+	<label>show url:<input type="checkbox" name="show_url" value="True" checked></label><br/>
+	<label>post text:<input type="text" name="post_text" value="" size="100"></label><br/>
+	<input type="submit" name="action.save.url" value="save"><br/>
+</fieldset>

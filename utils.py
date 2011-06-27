@@ -49,7 +49,8 @@ def get_agency_crawl_urls(agency):
 
 def get_archiver_crawler_urls(archiver):
     return model.CrawlBaseUrl.all().filter('download_as', archiver).fetch(15)
-    
+
+# global counters for the total # of agencies.
 def incrAgencyCount():
     memcache.incr('count.Agency')
     count = model.Counter.all().filter('name=',"Agency").get()

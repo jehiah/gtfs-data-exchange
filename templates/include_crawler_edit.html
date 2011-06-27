@@ -1,17 +1,18 @@
-<input type="hidden" name="orig_url" value="{{crawl_url.url}}">
+<input type="hidden" name="orig_url" value="{{escape(crawl_url.url or '')}}">
 <fieldset>
-    Current Status: {% if crawl_url.enabled %}
+    Current Status: 
+    {% if crawl_url.enabled %}
         <span style="color:green;">Enabled</span> <input type="submit" name="action.disable" value="disable">
     {% else %}
         <span style="color:red;">Disabled</span> <input type="submit" name="action.enable" value="enable">
     {% end %}
     <br/>
     <small>last crawled {{timesince(crawl_url.lastcrawled)}} ago</small> {% if not crawl_url.enabled %}<input type="submit" name="action.recrawl" value="queue for recrawl">{% end %}<br/>
-	<label>URL:<input type="text" name="url" size="100" value="{{crawl_url.url}}"/></label><br/>
-	<label>Recurse:<input type="text" name="recurse" size="5"value="{{crawl_url.recurse}}"></label><br/>
-	<label>download as:<input type="text" name="download_as" size="45"value="{{crawl_url.download_as}}"></label><br/>
-	<label>show url:<input type="checkbox" name="show_url" value="True" {% if crawl_url.show_url %} checked {% end %}></label><br/>
-	<label>post text:<input type="text" name="post_text" value="{{crawl_url.post_text}}" size="100"></label><br/>
-	<input type="submit" name="action.save.url" value="save"><br/>
-	<br/>
+    <label>URL:<input type="text" name="url" size="100" value="{{escape(crawl_url.url or '')}}"/></label><br/>
+    <label>Recurse:<input type="text" name="recurse" size="5" value="{{escape(str(crawl_url.recurse))}}"></label><br/>
+    <label>download as:<input type="text" name="download_as" size="45" value="{{escape(crawl_url.download_as or '')}}"></label><br/>
+    <label>show url:<input type="checkbox" name="show_url" value="True" {% if crawl_url.show_url %} checked {% end %}></label><br/>
+    <label>post text:<input type="text" name="post_text" value="{{escape(crawl_url.post_text or '')}}" size="90"></label><em><small>(skipped if 'show url' is enabled)</small></em><br/>
+    <input type="submit" name="action.save.url" value="save"><br/>
+    <br/>
 </fieldset>

@@ -56,7 +56,7 @@ class Application(tornado.wsgi.WSGIApplication):
             (r"/a/edit/(?P<slug>.+)$", app.admin.AgencyEditPage),
             
             (r"/a/crawler$", app.crawler.CrawlerMain),
-            (r"/a/crawler/(?P<archiver>)$", app.crawler.CrawlerEdit),
+            (r"/a/crawler/(?P<archiver>.*)$", app.crawler.CrawlerEdit),
             
             # endpoints requested by the crawler
             (r"/crawl/nexturl$", app.crawler.CrawlNextUrl),
