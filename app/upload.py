@@ -141,36 +141,36 @@ class UploadFile(app.basic.BasePublicPage):
         nextkey = str(datetime.datetime.now())+'-'+randstring+'.zip'
         self.render('upload.html', policy=policy, signature=signature, nextkey=nextkey.replace(' ', '-'))
     
-    @app.basic.login_required
-    def post(self):
-        if 'upload_file' not in self.request.POST:
-            self.error(400)
-            self.finish("file not specified!")
-            return
-        if (self.get_argument('upload_file', None) is None or
-           not self.get_argument('upload_file', None).filename):
-            self.error(400)
-            self.finish("file not specified!")
-            return
-        
-        name = self.get_argument('upload_file').filename
-        logging.info('upload file name ' + str(name))
-        
-        filedata = self.get_argument('upload_file').file.read()
-        contentType = self.get_argument('upload_file').type ## check that it's zip!
-        
-        try:
-            redirect_url = uploadfile(username=users.get_current_user(), 
-                                    filename=name, 
-                                    filedata=filedata, 
-                                    contentType=contentType, 
-                                    comments=self.get_argument('comments', ''), 
-                                    bounds=self.get_argument('bounds', ''))
-        except UploadError, e:
-            self.error(400)
-            return self.finish(e.msg)
-        
-        self.redirect(redirect_url)
+    # @app.basic.login_required
+    # def post(self):
+    #     if 'upload_file' not in self.request.POST:
+    #         self.error(400)
+    #         self.finish("file not specified!")
+    #         return
+    #     if (self.get_argument('upload_file', None) is None or
+    #        not self.get_argument('upload_file', None).filename):
+    #         self.error(400)
+    #         self.finish("file not specified!")
+    #         return
+    #     
+    #     name = self.get_argument('upload_file').filename
+    #     logging.info('upload file name ' + str(name))
+    #     
+    #     filedata = self.get_argument('upload_file').file.read()
+    #     contentType = self.get_argument('upload_file').type ## check that it's zip!
+    #     
+    #     try:
+    #         redirect_url = uploadfile(username=users.get_current_user(), 
+    #                                 filename=name, 
+    #                                 filedata=filedata, 
+    #                                 contentType=contentType, 
+    #                                 comments=self.get_argument('comments', ''), 
+    #                                 bounds=self.get_argument('bounds', ''))
+    #     except UploadError, e:
+    #         self.error(400)
+    #         return self.finish(e.msg)
+    #     
+    #     self.redirect(redirect_url)
 
 class QueuePage(app.basic.BasePublicPage):
     #@app.basic.login_required

@@ -34,14 +34,22 @@ def get_recent_messages():
 
 def get_agency_crawl_urls(agency):
     messages = model.MessageAgency.all().filter('agency', agency).order('-date').fetch(15)
-    archivers = []
+    crawl_urls = []
+    archivers = [agency.slug + '-archiver']
     for msg in messages:
         user = str(msg.message.user)
         if user.endswith('-archiver') and user not in archivers:
             archivers.append(user)
     
+    for x in model.CrawlBaseUrl.all().filter('download_as', agency).fetch(15):
+        if x.download_as not in archivers:
+            archivers.append(x.download_as)
+
+    for x in model.CrawlBaseUrl.all().filter('agency', agency).fetch(15):
+        if x.download_as not in archivers:
+            archivers.append(x.download_as)
+    
     logging.info(archivers)
-    crawl_urls = []
     for archiver in archivers:
         for x in model.CrawlBaseUrl.all().filter('download_as', archiver).fetch(15):
             crawl_urls.append(x)

@@ -42,7 +42,10 @@ def get_bounds_str(stop_data):
             min_lng = min(min_lng, float(row['stop_lon']))
         if -999 in (max_lat, max_lng, min_lat, min_lng):
             raise Exception('no lat/lon found')
-        return "|".join(max_lat, max_lng, min_lat, min_lng)
+        bounds = [str(x) for x in (max_lat, max_lng, min_lat, min_lng)]
+        bounds = "|".join(bounds)
+        logging.info('bounds are %s' % bounds)
+        return bounds
     except:
         logging.exception('failed getting bounds')
         return ""
@@ -50,14 +53,9 @@ def get_bounds_str(stop_data):
 
 class BackgroundProcessor:
     def __init__(self):
-        if tornado.options.options.environment == "dev":
-            self.homebase = 'http://localhost:8085/'
-        else:
-            self.bucket = 'gtfs'
-            self.homebase = 'http://www.gtfs-data-exchange.com/'
-            self.homebase = 'http://6.gtfs-data-exchange.appspot.com/'
-
-        logging.info('remote endpoint is %s' % self.homebase)
+        self.bucket = 'gtfs'
+        self.homebase = tornado.options.options.remote_endpoint
+        logging.info('--remote-endpoint is %s' % self.homebase)
 
         self.opener = urllib2.build_opener(MultipartPostHandler.MultipartPostHandler)
         self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (gtfs feed crawler http://www.gtfs-data-exchange.com/)')]
@@ -66,8 +64,8 @@ class BackgroundProcessor:
         self.markdown = markdown.Markdown()
         
     def reconnect(self):
-        if tornado.options.options.environment != "prod":
-            logging.info('skipping connection to s3. environment != prod')
+        if tornado.options.options.shunt_s3:
+            logging.info('skipping connection to s3. --shunt-s3')
             return
         
         aws_access_key_id = tornado.options.options.aws_key
@@ -107,7 +105,7 @@ You can view this file along with your comments at
         
 
     def send_error_email(self, key, msg):
-        if tornado.options.options.environment == "dev":
+        if tornado.options.options.shunt_s3:
             metadata = json.loads(open("/tmp/gtfs_s3/queue/" + key + ".meta", "rb").read())
         else:
             metadata = self.conn.head(self.bucket, key).object.metadata
@@ -129,7 +127,7 @@ Please correct the error and re-try this upload.
         EmailUtils.sendEmail(email,'GTFS Upload Error',text)
             
     def remove_queue_file(self, key):
-        if tornado.options.options.environment=="dev":
+        if tornado.options.options.shunt_s3:
             filename = os.path.join("/tmp/gtfs_s3/queue", key)
             logging.debug('removing %s' % filename)
             os.unlink(filename)
@@ -162,7 +160,7 @@ Please correct the error and re-try this upload.
             time.sleep(tornado.options.options.loop_sleep_interval)
 
     def get_items(self):
-        if tornado.options.options.environment == "dev":
+        if tornado.options.options.shunt_s3:
             # emulate s3 based on the filesystem
             for filename in glob.glob("/tmp/gtfs_s3/queue/*.meta"):
                 logging.info('found %r' % filename)
@@ -234,7 +232,7 @@ Please correct the error and re-try this upload.
         if data.startswith('RENAME'):
             newname = data.replace('RENAME:','')
             
-            if tornado.options.options.environment=="dev":
+            if tornado.options.options.shunt_s3:
                 # emulate the remote copy
                 filename = os.path.join("/tmp/gtfs_s3/queue", key)
                 new_filename = os.path.join("/tmp/gtfs_s3", newname)
@@ -250,7 +248,7 @@ Please correct the error and re-try this upload.
             # save for future use locally
             if not os.access('/tmp/gtfs/', os.R_OK):
                 os.mkdir('/tmp/gtfs')
-            outfile = open('/tmp/gtfs/'+newname, 'wb')
+            outfile = open(os.path.join('/tmp/gtfs', newname), 'wb')
             outfile.write(obj.data)
             outfile.close()
 
@@ -260,11 +258,13 @@ Please correct the error and re-try this upload.
         raise DeleteKey(key, data)
          
 if __name__ == "__main__":
-    tornado.options.define('environment', default="dev", type=str, help="dev|prod to pick remote endpoints")
-    tornado.options.define('token', type=str, help="crawler access token")
+    tornado.options.define('shunt_s3', type=bool, default=False, help="use a file-based s3 to pick remote endpoints")
     tornado.options.define('skip_uploads', type=bool, default=False, help="skip uploading files")
     tornado.options.define("loop_sleep_interval", type=int, default=240, help="seconds between each program loop")
     tornado.options.define("upload_sleep_interval", type=int, default=60, help="seconds between each file processing (should be >60 seconds for files named with HHMM)")
+    tornado.options.define('remote_endpoint', type=str, default="http://www.gtfs-data-exchange.com/", help="base url to gtfs-data-exchange. (in dev use http://localhost:8085/)")
+    tornado.options.define('token', type=str, help="crawler access token")
+    # 'http://6.gtfs-data-exchange.appspot.com/'
     
     tornado.options.parse_command_line()
     

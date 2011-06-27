@@ -1,10 +1,16 @@
 import smtplib
-import mimetypes
 import StringIO
 import MimeWriter
 import markdown
+import logging
 
-def sendEmail(toemail,subject,text,fromAddress="jehiah+gtfs-data-exchange@gmail.com"):
+import tornado.options
+tornado.options.define('skip_email', type=bool, default=False, help="skip sending emails")
+
+def sendEmail(toemail, subject, text, fromAddress="jehiah+gtfs-data-exchange@gmail.com"):
+    if tornado.options.options.skip_email:
+        logging.info('skipping sending email to %r Sub:%r' % (toemail, subject))
+        return
     try:
         server = smtplib.SMTP('127.0.0.1')
     except:
@@ -12,12 +18,12 @@ def sendEmail(toemail,subject,text,fromAddress="jehiah+gtfs-data-exchange@gmail.
         return
     m = markdown.Markdown()
     html = str(m.convert(text))
-    params={"html":html,"subject":subject,'email':toemail}
+    params=dict(html=html, subject=subject, email=toemail)
 
     message = StringIO.StringIO()
     writer = MimeWriter.MimeWriter(message)
     writer.addheader('MIME-Version', '1.0')
-    writer.addheader('Subject',subject)
+    writer.addheader('Subject', subject)
     writer.addheader('To','<'+toemail+'>')
     #writer.addheader('Reply-To','"GTFS Data Exchange"<donotreply@'+params["webhost"]+'>')
     writer.addheader('From','"GTFS Data Exchange" <'+fromAddress+'>')
@@ -80,4 +86,4 @@ This is an automated email from GTFS Data Exchange, it was sent to (%(email)s)
     body.write(html)
 
     writer.lastpart()
-    server.sendmail(fromAddress,toemail,message.getvalue())
+    server.sendmail(fromAddress, toemail, message.getvalue())

@@ -106,15 +106,23 @@ class AgencyEditPage(app.basic.BasePublicPage):
             c.enabled = False
             c.put()
             return self.redirect('/a/edit/' + agency.slug)
+        elif self.get_argument('action.requeue', None):
+            url = self.get_argument('orig_url')
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            c.next_crawl=datetime.datetime.now()
+            c.put()
+            return self.redirect('/a/crawler/' + c.download_as)
 
         elif self.get_argument('action.save.url', None):
-            url = self.get_argument('orig_url')
+            url = self.get_argument('orig_url', None)
             if url:
                 c = model.CrawlBaseUrl().all().filter('url =', url).get()
             else:
                 c = model.CrawlBaseUrl()
-                c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
-                c.next_crawl = datetime.datetime.now() + datetime.timedelta(minutes=10)
+                c.enabled = True
+                c.agency = agency
+                c.lastcrawled = datetime.datetime.now() - datetime.timedelta(days=365)
+                c.next_crawl = datetime.datetime.now() + datetime.timedelta(minutes=5)
                 # c.agency = agency
             c.url = self.get_argument('url')
             c.recurse = int(self.get_argument('recurse'))

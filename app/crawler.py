@@ -9,6 +9,7 @@ import app.basic
 import model
 import utils
 import logging
+import hashlib
 
 from app.upload import uploadfile, UploadError
 
@@ -33,6 +34,18 @@ def crawler_required(method):
         return method(self, *args, **kwargs)
     return wrapper
 
+class CrawlerTokens(app.basic.BaseController):
+    @app.basic.admin_required
+    def get(self):
+        tokens = model.CrawlerToken.all().fetch(50)
+        self.render('admin_crawler_tokens.html', tokens=tokens)
+    
+    @app.basic.admin_required
+    def post(self):
+        token = model.CrawlerToken()
+        token.token = hashlib.sha1(str(datetime.datetime)).hexdigest()
+        token.put()
+        self.redirect('/a/crawler_tokens')
 
 class CrawlerMain(app.basic.BaseController):
     @app.basic.admin_required
@@ -82,13 +95,20 @@ class CrawlerEdit(app.basic.BaseController):
             c.enabled = True
             c.put()
             return self.redirect('/a/crawler/' + c.download_as)
-
+        
         elif self.get_argument('action.disable', None):
             url = self.get_argument('orig_url')
             c = model.CrawlBaseUrl().all().filter('url =', url).get()
             c.enabled = False
             c.put()
             return self.redirect('/a/crawler/' + c.download_as)
+        elif self.get_argument('action.requeue', None):
+            url = self.get_argument('orig_url')
+            c = model.CrawlBaseUrl().all().filter('url =', url).get()
+            c.next_crawl=datetime.datetime.now()
+            c.put()
+            return self.redirect('/a/crawler/' + c.download_as)
+        
         
         url = self.get_argument('orig_url', '')
         if url:
@@ -106,13 +126,14 @@ class CrawlerEdit(app.basic.BaseController):
         c.post_text = self.get_argument('post_text', '')
         c.put()
         return self.redirect('/a/crawler/' + c.download_as)
-        
+
 
 class CrawlNextUrl(app.basic.BaseController):
     @crawler_required
     def get(self):
-        u = model.CrawlBaseUrl.all().filter('enabled =', True).filter('next_crawl >', datetime.datetime.now()).get()
+        u = model.CrawlBaseUrl.all().filter('enabled =', True).filter('next_crawl <', datetime.datetime.now()).get()
         if not u:
+            logging.info('no URLs to be crawled')
             return self.finish('NONE')
         logging.debug('returning %r to be cralwed' % u.url)
         u.lastcrawled = datetime.datetime.now()
@@ -137,7 +158,7 @@ class CrawlHeaders(app.basic.BaseController):
         url = self.get_argument('url', '')
         c = model.CrawlUrl()
         c.url = url
-        c.headers = self.request.POST['headers']
+        c.headers = self.get_argument('headers')
         c.save()
         self.finish('OK')
 
@@ -189,8 +210,9 @@ class CrawlUpload(app.basic.BaseController):
         username = users.User(self.get_argument('user'))
         md5sum = self.get_argument('md5sum')
         sizeoffile = int(self.get_argument('sizeoffile'))
+        bounds = self.get_argument('bounds', None)
         try:
-            filename = uploadfile(username=username, agencydata=agencydata, comments=comments, md5sum=md5sum, sizeoffile=sizeoffile)
+            filename = uploadfile(username=username, agencydata=agencydata, comments=comments, md5sum=md5sum, sizeoffile=sizeoffile, bounds=bounds)
         except UploadError, e:
             return self.finish('ERROR : ' + str(e.msg))
         return self.finish('RENAME:'+filename)

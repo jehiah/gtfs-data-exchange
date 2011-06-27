@@ -17,6 +17,11 @@ indexes:
 
 - kind: CrawlBaseUrl
   properties:
+  - name: enabled
+  - name: next_crawl
+
+- kind: CrawlBaseUrl
+  properties:
   - name: lastcrawled
     direction: desc
 

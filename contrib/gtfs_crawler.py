@@ -29,14 +29,8 @@ class DownloadError(Exception):
 
 class Crawler:
     def __init__(self):
-        if tornado.options.options.environment == "dev":
-            self.homebase = 'http://localhost:8085/'
-        else:
-            self.bucket = 'gtfs'
-            self.homebase = 'http://www.gtfs-data-exchange.com/'
-            self.homebase = 'http://6.gtfs-data-exchange.appspot.com/'
-
-        logging.info('remote endpoint is %s' % self.homebase)
+        self.homebase = tornado.options.options.remote_endpoint
+        logging.info('--remote-endpoint is %s' % self.homebase)
         self.opener = urllib2.build_opener(MultipartPostHandler.MultipartPostHandler)
         self.opener.addheaders = [('User-agent', 'Mozilla/5.0 (gtfs feed crawler http://www.gtfs-data-exchange.com/)')]
         urllib2.install_opener(self.opener)
@@ -51,8 +45,8 @@ class Crawler:
         self.connect_s3()
     
     def connect_s3(self):
-        if tornado.options.options.environment != "prod":
-            logging.info('skipping s3 connection. environment != prod')
+        if tornado.options.options.shunt_s3:
+            logging.info('skipping s3 connection --shunt-s3')
             return
         aws_access_key_id = tornado.options.options.aws_key
         aws_secret_access_key = tornado.options.options.aws_secret
@@ -87,7 +81,10 @@ class Crawler:
         data = self.gtfs_data_exchange_urlopen(url).read()
         if not data or data == 'NONE':
             return None
-        return json.loads(data)
+        try:
+            return json.loads(data)
+        except:
+            logging.error('failed loading headers %r' % data)
         
     def save_headers(self, url, headers):
         
@@ -107,15 +104,15 @@ class Crawler:
             return
         
         ## Last-Modified -> If-Modified-Since
-        d = {}
+        save_headers = {}
         if headers.get('Last-Modified', None):
             headers['If-Modified-Since'] = headers.get('Last-Modified', None)
         for k in ['If-Modified-Since','Etag']:
-            if headers.get(k,None):
-                d[k]=headers[k]
+            if headers.get(k, None):
+                save_headers[k]=headers[k]
         
         req = urllib2.Request(self.homebase+'crawl/headers')
-        req.add_data({'url': url,'headers':str(d)})
+        req.add_data({'url': url,'headers':json.dumps(save_headers)})
         self.gtfs_data_exchange_urlopen(req)
     
     def gtfs_data_exchange_urlopen(self, req):
@@ -133,11 +130,10 @@ class Crawler:
             return
         url = 'http://www2.septa.org/developer/download.php?fc=septa_gtfs.zip&download=download'
         localdir = '/tmp/gtfs/ftpmirror/%s' % agency
-
         logging.debug('crawling %r' % url)
         
         if not os.path.exists(localdir):
-            os.mkdir(localdir)
+            os.makedirs(localdir)
 
         for filename in ('gtfs_data.zip','google_rail.zip','google_bus.zip'):
             if os.path.exists('%s/%s' % (localdir,filename)):
@@ -251,7 +247,7 @@ class Crawler:
             filename = filename[len("queue/"):]
         assert '@' in user
         # if setting is prod
-        if tornado.options.options.environment=="dev":
+        if tornado.options.options.shunt_s3:
             if not os.path.exists("/tmp/gtfs_s3/queue"):
                 os.makedirs("/tmp/gtfs_s3/queue")
             filename = os.path.join("/tmp/gtfs_s3/queue", filename)
@@ -267,7 +263,7 @@ class Crawler:
             obj.metadata['user'] = user
             obj.metadata['gtfs_crawler']=gtfs_crawler
             obj.metadata['comments'] = comments
-            self.conn.put(self.bucket, filename, obj)
+            self.conn.put("gtfs", filename, obj)
         
     def should_skip_url(self,url):
         ## check the server to see if it's skipped there
@@ -458,14 +454,14 @@ class Crawler:
 def main():
     tornado.options.define('save_headers', default=True, type=bool, help="save headers for a future run")
     tornado.options.define('skip_304', default=False, type=bool, help="skip 304's to force a re-crawl of everything")
-    tornado.options.define('environment', default="dev", type=str, help="dev|prod to pick remote endpoints")
-    tornado.options.define('token', type=str, help="crawler access token")
+    tornado.options.define('shunt_s3', type=bool, default=False, help="use a file-based s3 to pick remote endpoints")
     tornado.options.define('crawl_url', type=str, help="a specific URL to crawl (note default settings will apply)")
     tornado.options.define('skip_uploads', type=bool, default=False, help="skip uploading files")
+    tornado.options.define('remote_endpoint', type=str, default="http://www.gtfs-data-exchange.com/", help="base url to gtfs-data-exchange. (in dev use http://localhost:8085/)")
+    tornado.options.define('token', type=str, help="crawler access token")
+    # 'http://6.gtfs-data-exchange.appspot.com/'
     tornado.options.define('aws_key', type=str)
     tornado.options.define('aws_secret', type=str)
-    # shunt
-    # undo-last
     tornado.options.parse_command_line()
     
     if not tornado.options.options.token:

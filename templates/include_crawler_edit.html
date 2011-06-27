@@ -7,7 +7,12 @@
         <span style="color:red;">Disabled</span> <input type="submit" name="action.enable" value="enable">
     {% end %}
     <br/>
-    <small>last crawled {{timesince(crawl_url.lastcrawled)}} ago</small> {% if not crawl_url.enabled %}<input type="submit" name="action.recrawl" value="queue for recrawl">{% end %}<br/>
+    <small>last crawled {{timesince(crawl_url.lastcrawled)}} ago</small><br/>
+    {% if crawl_url.enabled %}
+        Next Crawl at: {{escape(crawl_url.next_crawl.strftime('%b %d %Y - %H:%M'))}}
+        <input type="submit" name="action.requeue" value="queue for recrawl"><br/>
+    {% end %}
+    
     <label>URL:<input type="text" name="url" size="100" value="{{escape(crawl_url.url or '')}}"/></label><br/>
     <label>crawl every:<input type="text" name="crawl_interval" size="5" value="{{escape(str(crawl_url.crawl_interval or '24'))}}"/><em>hours</em></label><br/>
     <label>Recurse:<input type="text" name="recurse" size="5" value="{{escape(str(crawl_url.recurse))}}"></label><br/>

@@ -55,6 +55,7 @@ class Application(tornado.wsgi.WSGIApplication):
             (r"/a/aliases$", app.admin.AdminAliases),
             (r"/a/edit/(?P<slug>.+)$", app.admin.AgencyEditPage),
             
+            (r"/a/crawler_tokens$", app.crawler.CrawlerTokens),
             (r"/a/crawler$", app.crawler.CrawlerMain),
             (r"/a/crawler/(?P<archiver>.*)$", app.crawler.CrawlerEdit),
             
