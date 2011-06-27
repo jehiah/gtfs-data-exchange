@@ -114,7 +114,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
             else:
                 c = model.CrawlBaseUrl()
                 c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
-                c.agency = agency
+                # c.agency = agency
             c.url = self.get_argument('url')
             c.recurse = int(self.get_argument('recurse'))
             c.download_as = self.get_argument('download_as', 'gtfs-archiver')

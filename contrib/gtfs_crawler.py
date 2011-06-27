@@ -30,7 +30,6 @@ class DownloadError(Exception):
 class Crawler:
     def __init__(self):
         if tornado.options.options.environment == "dev":
-            self.bucket = 'gtfs-devel'
             self.homebase = 'http://localhost:8085/'
         else:
             self.bucket = 'gtfs'

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block rightsidebar %}
+{% end %}
+
+
+{% block body %}
+<h3>Edit {{escape(archiver)}}</h3>
+
+{% if "error" in locals() and error %}
+<div class="error">{{escape(error)}}</div>
+{% end %}
+
+<h2>URLS to be crawled</h2>
+<p>Where possible link to the zip file itself. The crawler will only traverse to subdirectories, it will not go up a directory path if you point it to a html page.</p>
+{% for crawl_url in crawl_urls %}
+    <form action="/a/crawler/{{url_esape(archiver)}}" method="post">
+    {% include "include_crawler_edit.html" %}
+    </form>
+    <!-- TODO: show status of this crawl. has it been 404'ing? 304? redirect? -->
+{% end %}
+
+{% end %}

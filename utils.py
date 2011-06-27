@@ -43,11 +43,13 @@ def get_agency_crawl_urls(agency):
     logging.info(archivers)
     crawl_urls = []
     for archiver in archivers:
-        crawler = model.CrawlBaseUrl.all().filter('download_as', archiver).get()
-        if crawler:
-            crawl_urls.append(crawler)
+        for x in model.CrawlBaseUrl.all().filter('download_as', archiver).fetch(15):
+            crawl_urls.append(x)
     return crawl_urls
 
+def get_archiver_crawler_urls(archiver):
+    return model.CrawlBaseUrl.all().filter('download_as', archiver).fetch(15)
+    
 def incrAgencyCount():
     memcache.incr('count.Agency')
     count = model.Counter.all().filter('name=',"Agency").get()

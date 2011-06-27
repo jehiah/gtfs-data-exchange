@@ -20,21 +20,21 @@ class Counter(db.Model):
     name = db.StringProperty(multiline=False,default='')
 
 class Agency(db.Model):
-    name = db.StringProperty(multiline=False,default='')
-    description = db.StringProperty(multiline=True,default='')
-    url = db.StringProperty(multiline=False,default='')
+    name = db.StringProperty(multiline=False, default='')
+    description = db.StringProperty(multiline=True, default='')
+    url = db.StringProperty(multiline=False, default='')
     date_added = db.DateTimeProperty(auto_now_add=True)
-    slug = db.StringProperty(multiline=False,default='')
+    slug = db.StringProperty(multiline=False, default='')
     messagecount = db.IntegerProperty(default=0)
     lastupdate = db.DateTimeProperty(auto_now_add=True)
 
-    license = db.StringProperty(multiline=False,default='')
-    feed_baseurl = db.StringProperty(multiline=False,default='')
-    license_url = db.StringProperty(multiline=False,default='')
+    license = db.StringProperty(multiline=False, default='')
+    feed_baseurl = db.StringProperty(multiline=False, default='')
+    license_url = db.StringProperty(multiline=False, default='')
 
-    country_name = db.StringProperty(multiline=False,default='')
-    state_name = db.StringProperty(multiline=False,default='')
-    area_name = db.StringProperty(multiline=False,default='')
+    country_name = db.StringProperty(multiline=False, default='')
+    state_name = db.StringProperty(multiline=False, default='')
+    area_name = db.StringProperty(multiline=False, default='')
 
     is_official = db.BooleanProperty(default=False)
 

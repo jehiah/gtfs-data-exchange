@@ -63,6 +63,15 @@ class CrawlerMain(app.basic.BaseController):
         c.put()
         self.redirect('/crawl')
 
+class CrawlerEdit(app.basic.BaseController):
+    @app.basic.admin_required
+    def get(self, archiver):
+        crawl_urls = utils.get_archiver_crawler_urls(archiver)
+        if not crawl_urls:
+            raise tornado.web.HTTPError(404)
+        self.render('crawler_edit.html', archiver=archiver, crawl_urls=crawl_urls, error=None)
+    
+
 class CrawlNextUrl(app.basic.BaseController):
     @crawler_required
     def get(self):

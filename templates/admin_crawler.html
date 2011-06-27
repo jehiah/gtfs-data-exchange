@@ -7,15 +7,27 @@
 {% block body %}
 
 <h2>List of Crawler Accounts</h2>
-		
+
+<p>Crawlers are primarily edited through the matching Agency page. If no agency is associated to a crawl</p>
+
 {% if crawl_urls %}
-<ul>
+<table>
 {% for u in crawl_urls %}
-<li>
-	<a href="/user/{{url_escape(u.download_as)}}/edit">{{escape(u.download_as)}}</a> - {% if u.enabled %}<small>{{escape(u.url)}}</small>{% else %} disabled {% end %}</a>
-</li>
+<tr>
+    <td>
+    {% if u.agency %}
+        <a href="/a/edit/{{url_escape(u.agency.slug)}}">{{escape(u.agency.name)}}</a>
+    {% else %}
+        [no agency]
+    {% end %}
+    </td>
+    <td>
+    {{escape(u.download_as)}}<a href="/a/crawler/{{url_escape(u.download_as)}}">[view]</a>
+    </td>
+    <td>{% if u.enabled %}<small>{{escape(u.url)}}</small>{% else %} disabled {% end %}</td>
+</tr>
 {% end %}
-</ul>
+</table>
 {% else %}
     <p>No crawler accounts configured.</p>
 {% end %}
