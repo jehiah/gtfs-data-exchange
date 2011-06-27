@@ -23,6 +23,7 @@ class Application(tornado.wsgi.WSGIApplication):
             "template_path": os.path.join(os.path.dirname(__file__), "templates"),
             "debug" : True,
             'ui_methods' : uimethods,
+            "autoescape" : None,
         }
         handlers = [
             (r"/(how-to-provide-open-data)$", app.static.StaticPage),

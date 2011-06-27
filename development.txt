@@ -2,6 +2,10 @@
 
 In order to run locally, you need a copy of [tornado](http://tornadoweb.org/) available in your import path. To upload to appengine, you must also have it as a local directory.
 
+	git clone https://github.com/facebook/tornado.git tmp_clone
+	mv tmp_clone/tornado tornado
+	rm -rf tmp_clone
+
 # bulk load a copy of production agency data
 
 To dump the dev datastore startup with --clear-datastore
