@@ -119,6 +119,7 @@ class AgencyEditPage(app.basic.BasePublicPage):
             c.url = self.get_argument('url')
             c.recurse = int(self.get_argument('recurse'))
             c.download_as = self.get_argument('download_as', 'gtfs-archiver')
+            c.crawl_interval = int(self.get_argument('crawl_interval', 24))
             c.show_url = self.get_argument('show_url', True) == 'True'
             c.post_text = self.get_argument('post_text', '')
             c.put()

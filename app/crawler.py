@@ -61,6 +61,7 @@ class CrawlerMain(app.basic.BaseController):
         c.download_as = self.get_argument('download_as', 'gtfs-archiver')
         c.show_url = self.get_argument('show_url', True) == 'True'
         c.post_text = self.get_argument('post_text', '')
+        c.crawl_interval = int(self.get_argument('crawl_interval', 24))
         c.put()
         self.redirect('/crawl')
 
@@ -99,6 +100,7 @@ class CrawlerEdit(app.basic.BaseController):
             # c.agency = agency
         c.url = self.get_argument('url')
         c.recurse = int(self.get_argument('recurse'))
+        c.crawl_interval = int(self.get_argument('crawl_interval', 24))
         c.download_as = self.get_argument('download_as', 'gtfs-archiver')
         c.show_url = self.get_argument('show_url', True) == 'True'
         c.post_text = self.get_argument('post_text', '')
