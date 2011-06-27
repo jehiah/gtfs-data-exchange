@@ -109,6 +109,10 @@ class Message(db.Model):
     md5sum = db.StringProperty(multiline=False)
     size = db.IntegerProperty()
 
+    max_lat = db.FloatProperty()
+    max_lng = db.FloatProperty()
+    min_lat = db.FloatProperty()
+    min_lng = db.FloatProperty()
     @property
     def agencies(self):
         a = getattr(self,'_agencies',None)

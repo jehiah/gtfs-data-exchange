@@ -4,7 +4,8 @@ import logging
 import os
 import S3
 import simplejson as json
-import StringIO
+import cStringIO
+import csv
 import sys
 import time
 import tornado.options
@@ -27,6 +28,25 @@ class DevObj(object):
     def __init__(self, contents, metadata):
         self.data = contents
         self.metadata = metadata
+
+def get_bounds_str(stop_data):
+    try:
+        reader = csv.DictReader(cStringIO.StringIO(stop_data))
+        max_lat, max_lng, min_lat, min_lng = -999, -999, 999, 999
+        for row in reader:
+            if not row.get('stop_lat') or not row.get('stop_lon'):
+                continue
+            max_lat = max(max_lat, float(row['stop_lat']))
+            max_lng = max(max_lng, float(row['stop_lon']))
+            min_lat = min(min_lat, float(row['stop_lat']))
+            min_lng = min(min_lng, float(row['stop_lon']))
+        if -999 in (max_lat, max_lng, min_lat, min_lng):
+            raise Exception('no lat/lon found')
+        return "|".join(max_lat, max_lng, min_lat, min_lng)
+    except:
+        logging.exception('failed getting bounds')
+        return ""
+    
 
 class BackgroundProcessor:
     def __init__(self):
@@ -178,34 +198,37 @@ Please correct the error and re-try this upload.
         ## obj has .data and .metadata
         ## .metatdata should be {'user':'me@google.com','comments':'this is a great upload'}
         try:
-            z = zipfile.ZipFile(StringIO.StringIO(obj.data))
+            zip_data = zipfile.ZipFile(cStringIO.StringIO(obj.data))
         except zipfile.BadZipfile, e:
             logging.warning('bad zip archive')
             raise DeleteKey(key, "GTFS .zip Archive is invalid")
-        if z.testzip() != None:
+        if zip_data.testzip() != None:
             logging.warning('bad zip archive')
             raise DeleteKey(key, "GTFS .zip Archive is invalid")
         agencydata = None
-        for n in z.namelist():
-            if n.find('_vti_') != -1:
+        bounds = None
+        for filename in zip_data.namelist():
+            if filename.find('_vti_') != -1:
                 continue
-            if n == 'agency.txt' or n.endswith('/agency.txt'):
-                logging.info('reading for %r' % n)
-                agencydata = z.read(n)
+            if filename == 'agency.txt' or filename.endswith('/agency.txt'):
+                logging.info('reading for %r' % filename)
+                agencydata = zip_data.read(filename)
                 logging.info('%r' % agencydata)
                 break
+            if filename == 'stops.txt' or filename.endswith('/stops.txt'):
+                bounds = get_bounds_str(zip_data.read(filename))
         if not agencydata:
-            logging.debug('no agency.txt data %r %r %r' % (key, obj.metadata, z.namelist()))
+            logging.debug('no agency.txt data %r %r %r' % (key, obj.metadata, zip_data.namelist()))
             raise DeleteKey(key, "agency.txt file is missing or invalid in GTFS .zip archive")
             
-        ## parse the zip
         ## post the agency text, md5, user, comments, size
         req = urllib2.Request(self.homebase+'crawl/upload')
         req.add_data({'user': obj.metadata.get('user','jehiah+unkownuser@gmail.com'),
                       'comments':obj.metadata.get('comments',''),
                       'sizeoffile':len(obj.data),
                       'md5sum':hashlib.md5(obj.data).hexdigest(),
-                      'agencydata':agencydata})
+                      'agencydata':agencydata,
+                      'bounds': bounds or ''})
         data = self.gtfs_data_exchange_urlopen(req).read()
         ## if we got 'RENAME:' then rename the file
         if data.startswith('RENAME'):

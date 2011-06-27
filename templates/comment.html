@@ -20,4 +20,54 @@ MD5: {{msg.md5sum}}<br/>
 {% end %}
 </div>
 
+{% if msg.max_lat %}
+    <div id="map" style="width:600px; height:400px"></div>
+{% end %}
+
+{% end %}
+
+{% block footer_javascript %}
+{% if msg.max_lat %}
+<script src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
+google.load("jquery","1.3.2");
+</script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+    bounds = {
+      maxLat: {{ json_encode(msg.max_lat) }},
+      maxLng: {{ json_encode(msg.max_lng) }},
+      minLat: {{ json_encode(msg.min_lat) }},
+      minLng: {{ json_encode(msg.min_lng) }}
+    };
+
+    var centerLat = (bounds.maxLat + bounds.minLat) / 2;
+    var centerLng = (bounds.maxLng + bounds.minLng) / 2;
+
+    var latlng = new google.maps.LatLng(centerLat, centerLng);
+    var mapOptions = {
+      zoom: 10,
+      center: latlng,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+    rectangle = new google.maps.Rectangle();
+    
+    var latlngBounds = new google.maps.LatLngBounds(new google.maps.LatLng(bounds.minLat, bounds.minLng),
+            new google.maps.LatLng(bounds.maxLat, bounds.maxLng));
+    var rectOptions = {
+      strokeColor: "#666666",
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: "transparent",
+      fillOpacity: 0.35,
+      map: map,
+      bounds: latlngBounds
+    };
+    rectangle.setOptions(rectOptions);
+});
+</script>
+{% end %}
+
 {% end %}

@@ -20,7 +20,7 @@ class UploadError(Exception):
         return str(self.msg)
 
 
-def uploadfile(username, agencydata, comments, md5sum, sizeoffile):
+def uploadfile(username, agencydata, comments, md5sum, sizeoffile, bounds):
     ## todo: cache
     if model.Message.all().filter('md5sum =', md5sum).count() >0:
         raise UploadError('This file has previously been uploaded')
@@ -33,13 +33,28 @@ def uploadfile(username, agencydata, comments, md5sum, sizeoffile):
         raise UploadError("zip file did not contain any valid agencies in agency.txt.")
     
     ## save our msg
-    m = model.Message(user=username, content=comments)
-    m.hasFile = True
+    new_message = model.Message(user=username, content=comments)
+    new_message.hasFile = True
     memcache.delete('Message.recent')
-    # m.filename = filename
-    m.md5sum = md5sum
-    m.size = sizeoffile
-    m.put()
+    # new_message.filename = filename
+    new_message.md5sum = md5sum
+    new_message.size = sizeoffile
+    new_message.max_lat = None
+    new_message.max_lng = None
+    new_message.min_lat = None
+    new_message.min_lng = None
+
+    if bounds:
+        bounds_list = bounds.split("|")
+        try:
+            new_message.max_lat = float(bounds_list[0])
+            new_message.max_lng = float(bounds_list[1])
+            new_message.min_lat = float(bounds_list[2])
+            new_message.min_lng = float(bounds_list[3])
+        except ValueError:
+            logging.error('failed to set bounds from %s' % bounds)
+            
+    new_message.put()
     
     d = datetime.datetime.now()
     datestr = d.strftime('%Y%m%d_%H%M')
@@ -84,8 +99,8 @@ def uploadfile(username, agencydata, comments, md5sum, sizeoffile):
             utils.incrAgencyCount()
         
         if len(raw_agencies) == 1:
-            m.filename = '%s_%s.zip' % (a.slug, datestr)
-            m.put()
+            new_message.filename = '%s_%s.zip' % (a.slug, datestr)
+            new_message.put()
         
         # some zip files have the same url several times; only capture the first time that url is used
         if a in seen_agencies:
@@ -94,23 +109,24 @@ def uploadfile(username, agencydata, comments, md5sum, sizeoffile):
         
         ma= model.MessageAgency()
         ma.agency = a
-        ma.message = m
+        ma.message = new_message
         ma.hasFile=True
         ma.put()
         memcache.delete('Agency.all') # because it has the cached last-update
     
-    if not m.filename:
-        m.filename = '%s_%s.zip' % (username.nickname(), datestr)
-        m.put()
+    if not new_message.filename:
+        new_message.filename = '%s_%s.zip' % (username.nickname(), datestr)
+        new_message.put()
     
-    recentFiles = model.Message.all().filter('hasFile =', True).filter('date >=', datetime.datetime(d.year, d.month, d.day, d.hour, d.minute)).count()
+    # TODO: can we even hit this, since upload should only be called at a rate of once a minute anyway?
+    recentFiles = model.Message.all().filter('hasFile =', True).filter('date >=', d.replace(second=0, microsecond=0)).count()
     if recentFiles > 1: # note we already saved *this* filename
-        m.filename= m.filename.replace('.zip', '_%d.zip' % recentFiles)
-        m.put()
+        new_message.filename = new_message.filename.replace('.zip', '_%d.zip' % recentFiles)
+        new_message.put()
     
     ## send email to user ?
     
-    return m.filename
+    return new_message.filename
 
 class UploadFile(app.basic.BasePublicPage):
     @app.basic.login_required
@@ -144,7 +160,12 @@ class UploadFile(app.basic.BasePublicPage):
         contentType = self.get_argument('upload_file').type ## check that it's zip!
         
         try:
-            redirect_url = uploadfile(username=users.get_current_user(), filename=name, filedata=filedata, contentType=contentType, comments=self.get_argument('comments', ''))
+            redirect_url = uploadfile(username=users.get_current_user(), 
+                                    filename=name, 
+                                    filedata=filedata, 
+                                    contentType=contentType, 
+                                    comments=self.get_argument('comments', ''), 
+                                    bounds=self.get_argument('bounds', ''))
         except UploadError, e:
             self.error(400)
             return self.finish(e.msg)
