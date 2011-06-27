@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Crawler Tokens{% end %}
+
+{% block body %}
+
+<h2>Crawler Tokens</h2>
+<p>These are values passed as <code>--token</code> to gtfs_crawler.py or background_processor.py</p>
+
+<ul>
+    {% for token in tokens %}
+    <li><code>--token={{escape(token.token)}}</code></li>
+    {% end %}
+</ul>
+
+<form action="/a/crawler_tokens" method="post">
+    <input type="submit" name="action.new" value="Generate New Token">
+</form>
+{% end %}
