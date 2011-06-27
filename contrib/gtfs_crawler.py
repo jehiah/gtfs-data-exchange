@@ -48,8 +48,8 @@ class Crawler:
         if tornado.options.options.shunt_s3:
             logging.info('skipping s3 connection --shunt-s3')
             return
-        aws_access_key_id = tornado.options.options.aws_key
-        aws_secret_access_key = tornado.options.options.aws_secret
+        aws_access_key_id = _utf8(tornado.options.options.aws_key)
+        aws_secret_access_key = _utf8(tornado.options.options.aws_secret)
         self.conn = S3.AWSAuthConnection(aws_access_key_id, aws_secret_access_key)
 
     def is_special_url(self,url):
@@ -243,11 +243,11 @@ class Crawler:
             logging.info('==> uploaded %s/%s as %s' % (desc, shortname, nextkey))
             
     def save_gtfs_file(self, contents, user, gtfs_crawler, comments, filename):
-        if filename.startswith("queue/"):
-            filename = filename[len("queue/"):]
         assert '@' in user
         # if setting is prod
         if tornado.options.options.shunt_s3:
+            if filename.startswith("queue/"):
+                filename = filename[len("queue/"):]
             if not os.path.exists("/tmp/gtfs_s3/queue"):
                 os.makedirs("/tmp/gtfs_s3/queue")
             filename = os.path.join("/tmp/gtfs_s3/queue", filename)
@@ -263,6 +263,7 @@ class Crawler:
             obj.metadata['user'] = user
             obj.metadata['gtfs_crawler']=gtfs_crawler
             obj.metadata['comments'] = comments
+            logging.info('putting %r' % filename)
             self.conn.put("gtfs", filename, obj)
         
     def should_skip_url(self,url):
@@ -450,6 +451,13 @@ class Crawler:
         req.add_data({'_':''})
         data = self.gtfs_data_exchange_urlopen(req).read()
         logging.debug(data)
+
+
+def _utf8(s):
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    assert isinstance(s, str)
+    return s
 
 def main():
     tornado.options.define('save_headers', default=True, type=bool, help="save headers for a future run")

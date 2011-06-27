@@ -68,8 +68,8 @@ class BackgroundProcessor:
             logging.info('skipping connection to s3. --shunt-s3')
             return
         
-        aws_access_key_id = tornado.options.options.aws_key
-        aws_secret_access_key = tornado.options.options.aws_secret
+        aws_access_key_id = _utf8(tornado.options.options.aws_key)
+        aws_secret_access_key = _utf8(tornado.options.options.aws_secret)
         self.conn = S3.AWSAuthConnection(aws_access_key_id, aws_secret_access_key)
 
     def sendSuccessEmail(self, filename, metadata):
@@ -177,7 +177,8 @@ Please correct the error and re-try this upload.
                 yield(key, obj)
             return
                 
-        for x in self.conn.list_bucket(self.bucket,{'prefix':'queue/'}).entries:
+        for x in self.conn.list_bucket(self.bucket, {'prefix':'queue/'}).entries:
+            logging.info('found %r' % x.key)
             yield (x.key, self.conn.get(self.bucket, x.key).object)
             logging.info('sleeping %d' % tornado.options.options.upload_sleep_interval)
             time.sleep(tornado.options.options.upload_sleep_interval)
@@ -256,7 +257,13 @@ Please correct the error and re-try this upload.
             return
         logging.debug('response was %r' % data)
         raise DeleteKey(key, data)
-         
+
+def _utf8(s):
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    assert isinstance(s, str)
+    return s
+
 if __name__ == "__main__":
     tornado.options.define('shunt_s3', type=bool, default=False, help="use a file-based s3 to pick remote endpoints")
     tornado.options.define('skip_uploads', type=bool, default=False, help="skip uploading files")
@@ -264,6 +271,8 @@ if __name__ == "__main__":
     tornado.options.define("upload_sleep_interval", type=int, default=60, help="seconds between each file processing (should be >60 seconds for files named with HHMM)")
     tornado.options.define('remote_endpoint', type=str, default="http://www.gtfs-data-exchange.com/", help="base url to gtfs-data-exchange. (in dev use http://localhost:8085/)")
     tornado.options.define('token', type=str, help="crawler access token")
+    tornado.options.define('aws_key', type=str)
+    tornado.options.define('aws_secret', type=str)
     # 'http://6.gtfs-data-exchange.appspot.com/'
     
     tornado.options.parse_command_line()
