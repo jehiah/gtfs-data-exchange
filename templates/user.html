@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}User Profile - {{u.nickname}}{% end %}
+{% block title %}User Profile - {{escape(u.nickname())}}{% end %}
 
 
 {% block rightsidebar %}
 <div id="rightsidebar">
-	<p><strong><img src="/static/feed.png"> <a href="/user/{{u.nickname}}/feed">Subscribe to Updates</a></strong><br/>
-	Stay informed when {{u.nickname}} uploads new GTFS feeds, or posts comments. Subscribe to updates today.</p>
+	<p><strong><img src="/static/feed.png"> <a href="/user/{{url_escape(u.nickname())}}/feed">Subscribe to Updates</a></strong><br/>
+	Stay informed when {{escape(u.nickname())}} uploads new GTFS feeds, or posts comments. Subscribe to updates today.</p>
 </div>
 
 {% end %}
-{% block feedurl %}/user/{{u.nickname}}/feed{% end %}
+{% block feedurl %}/user/{{escape(u.nickname())}}/feed{% end %}
 
 {% block body %}
 
-<h2>Comments and Uploads by {{u.nickname}}</h2>
+<h2>Comments and Uploads by {{escape(u.nickname())}}</h2>
 
 <br clear="right"/>
 {% if paginator.pages != 1 %}
