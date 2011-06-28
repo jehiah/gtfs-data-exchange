@@ -131,7 +131,7 @@ def uploadfile(username, agencydata, comments, md5sum, sizeoffile, bounds):
 class UploadFile(app.basic.BasePublicPage):
     @app.basic.login_required
     def get(self):
-        if self.production:
+        if not self.settings['debug']:
             policy="eyJleHBpcmF0aW9uIjogIjIwMTItMDEtMDFUMDA6MDA6MDBaIiwKICAiY29uZGl0aW9ucyI6IFsgCiAgICB7ImJ1Y2tldCI6ICJndGZzIn0sIAogICAgWyJzdGFydHMtd2l0aCIsICIka2V5IiwgInF1ZXVlLyJdLAogICAgeyJhY2wiOiAicHJpdmF0ZSJ9LAogICAgeyJzdWNjZXNzX2FjdGlvbl9yZWRpcmVjdCI6ICJodHRwOi8vd3d3Lmd0ZnMtZGF0YS1leGNoYW5nZS5jb20vcXVldWUifSwKICAgIFsiZXEiLCAiJENvbnRlbnQtVHlwZSIsICJhcHBsaWNhdGlvbi96aXAiXSwKICAgIFsiY29udGVudC1sZW5ndGgtcmFuZ2UiLCAwLCAzMTQ1NzI4MF0sCiAgICBbInN0YXJ0cy13aXRoIiwiJHgtYW16LW1ldGEtdXNlciIsIiJdLAogICAgWyJzdGFydHMtd2l0aCIsIiR4LWFtei1tZXRhLWNvbW1lbnRzIiwiIl0KICAgIF0KfQo"
             signature = "/gQwc3o9tbQYzK0cO+n76oWJA3A="
         else:
@@ -179,20 +179,21 @@ class QueuePage(app.basic.BasePublicPage):
             return self.redirect('/upload')
         self.render('queue.html')
 
-
 class ZipFilePage(app.basic.BasePublicPage):
     def __before__(self, *args):
         pass
     
     def get(self, name):
         key = 'DataFile.name.%s' % name
-        f = memcache.get(key)
-        if not f:
-            f = model.Message.all().filter('filename =', name).get()
-            memcache.set(key, f)
-        production = self.request.url.find('www.gtfs-data-exchange.com') != -1
+        message = memcache.get(key)
+        if not message:
+            message = model.Message.all().filter('filename =', name).get()
+            memcache.set(key, message)
+        production = not self.settings['debug']
         
-        if f:
-            return self.redirect(f.filelink(production=production))
+        if message:
+            redirect_url = message.filelink(production=production)
+            logging.info('redirecting to file at %s' % redirect_url)
+            return self.redirect(redirect_url)
         else:
             raise tornado.web.HTTPError(404)

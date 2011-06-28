@@ -17,11 +17,11 @@
   <input type="hidden" name="key" value="queue/{{nextkey}}">
   <input type="hidden" name="AWSAccessKeyId" value="1TRQ62N38DB2SJ7JZT02"> 
   <input type="hidden" name="acl" value="private"> 
-  <input type="hidden" name="success_action_redirect" value="{{baseurl}}/queue">
+  <input type="hidden" name="success_action_redirect" value="{{handler.request.protocol}}://{{escape(handler.request.host)}}/queue">
   <input type="hidden" name="policy" value="{{policy}}">
   <input type="hidden" name="signature" value="{{signature}}">
   <input type="hidden" name="Content-Type" value="application/zip">
-  <input type="hidden" name="x-amz-meta-user" value="{{user.email}}">
+  <input type="hidden" name="x-amz-meta-user" value="{{current_user.email()}}">
 
 <fieldset>
 Comments: <br/>

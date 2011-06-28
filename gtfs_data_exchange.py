@@ -19,9 +19,10 @@ import uimethods
 
 class Application(tornado.wsgi.WSGIApplication):
     def __init__(self):
+        debug = os.environ['SERVER_SOFTWARE'].startswith('Dev')
         app_settings = {
             "template_path": os.path.join(os.path.dirname(__file__), "templates"),
-            "debug" : True,
+            "debug" : debug,
             'ui_methods' : uimethods,
             "autoescape" : None,
         }
