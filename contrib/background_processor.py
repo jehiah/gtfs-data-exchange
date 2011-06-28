@@ -213,7 +213,6 @@ Please correct the error and re-try this upload.
                 logging.info('reading for %r' % filename)
                 agencydata = zip_data.read(filename)
                 logging.info('%r' % agencydata)
-                break
             if filename == 'stops.txt' or filename.endswith('/stops.txt'):
                 bounds = get_bounds_str(zip_data.read(filename))
         if not agencydata:
