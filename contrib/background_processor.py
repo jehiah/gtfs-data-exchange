@@ -207,7 +207,9 @@ Please correct the error and re-try this upload.
         agencydata = None
         bounds = None
         for filename in zip_data.namelist():
-            if filename.find('_vti_') != -1:
+            if '_vti_' in filename:
+                continue
+            if '__MACOSX' in filename:
                 continue
             if filename == 'agency.txt' or filename.endswith('/agency.txt'):
                 logging.info('reading for %r' % filename)
