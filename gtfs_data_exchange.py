@@ -37,9 +37,9 @@ class Application(tornado.wsgi.WSGIApplication):
             
             (r"/meta/(?P<key>.*?)/edit/?$", app.admin.CommentAdminPage),
             (r"/meta/(?P<key>.*?)/?$", app.agency.CommentPage),
-            (r"/(?P<userOrAgency>user)/(?P<id>.*?)/feed/?$", app.agency.FeedPage),
+            (r"/(?P<user_or_agency>user)/(?P<slug>.*?)/feed/?$", app.agency.FeedPage),
             (r"/user/(?P<user>.*?)/?$", app.agency.UserPage),
-            (r"/(?P<userOrAgency>agency)/(?P<id>.*?)/feed/?$", app.agency.FeedPage),
+            (r"/(?P<user_or_agency>agency)/(?P<slug>.*?)/feed/?$", app.agency.FeedPage),
             
             (r"/$", app.agencies.MainPage),
             (r"/agency/?$", tornado.web.RedirectHandler, {"url": "/agencies"}),

@@ -147,7 +147,7 @@ class Message(db.Model):
         elif production == False:
             return 'file:///tmp/gtfs_s3/' + self.filename
         else:
-            return "/gtfs/"+ (self.filename or '')
+            raise Exception('invalid flag')
     
     def json(self):
         agencies = [x.slug for x in self.agencies]

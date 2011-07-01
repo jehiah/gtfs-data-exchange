@@ -1,30 +1,28 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <title>{% block title %}GTFS Data Exchange{% end %}</title>
-    <id>{{baseurl}}/feed</id>
-    <link href="{% block feedurl %}{{baseurl}}/feed{% end %}" type="application/atom+xml" rel="self" />
-    <link href="{% block alternateurl %}{{baseurl}}/{% end %}" type="text/html" rel="alternative" />
-	{% for msg in messages %}
-    {%if forloop.first %}<updated>{{msg.rfc3339}}</updated>{% end %}
-	{% end %}
+    <id>{{base_url}}/feed</id>
+    <link href="{% block feedurl %}{{base_url}}/feed{% end %}" type="application/atom+xml" rel="self" />
+    <link href="{% block alternateurl %}{{base_url}}/{% end %}" type="text/html" rel="alternative" />
+    <updated>{{messages[0].rfc3339()}}</updated>
   {%block extrahead %}{% end %}
 {% for msg in messages %}
   <entry>
-	<link rel="alternate" href="{{baseurl}}/meta/{{msg.key().id()}}" type="text/html"/>
+	<link rel="alternate" href="{{base_url}}/meta/{{msg.key().id()}}" type="text/html"/>
 	<author>
 	  <name>{{msg.user}}</name>
 	</author>
-      <id>{{baseurl}}/meta/{{msg.key().id()}}</id>
-      <title type="text">{% if msg.hasFile %}Upload{%else%}Comment{%end%} : {% for a in msg.agencies %}{{a.name}}{% if not forloop.last %},{% end %} {% end %}by {{msg.user}}</title>
+      <id>{{base_url}}/meta/{{msg.key().id()}}</id>
+      <title type="text">{% if msg.hasFile %}Upload{%else%}Comment{%end%} : {% for i, a in enumerate(msg.agencies) %}{{a.name}}{% if i != len(msg.agencies) %},{% end %} {% end %}by {{msg.user}}</title>
       <content type="html"><![CDATA[ 
 {{markdown(msg.content)}}
 
 {% if msg.hasFile %}
-<p><a href="{{baseurl}}{{msg.filelink(production)}}">{{baseurl}}{{msg.filelink(production)}}</a> {% if msg.size %}<span class="filesize">{{filesizeformat(msg.size)}}</span>{% end %}</p>
+<p><a href="{{msg.filelink(production)}}">{{msg.filelink(production)}}</a> {% if msg.size %}<span class="filesize">{{filesizeformat(msg.size)}}</span>{% end %}</p>
 {% end %}	
 ]]></content>
-	  {% if msg.hasFile %}<link rel="enclosure" type="application/zip" title="{{msg.filename}}" href="{{baseurl}}{{msg.filelink(production)}}" {% if msg.size %}length="{{msg.size}}"{% end %} />{% end %}
-      <updated>{{msg.rfc3339}}</updated>
-      <published>{{msg.rfc3339}}</published>
+	  {% if msg.hasFile %}<link rel="enclosure" type="application/zip" title="{{msg.filename}}" href="{{msg.filelink(production)}}" {% if msg.size %}length="{{msg.size}}"{% end %} />{% end %}
+      <updated>{{msg.rfc3339()}}</updated>
+      <published>{{msg.rfc3339()}}</published>
 	
   </entry>
 {% end %}

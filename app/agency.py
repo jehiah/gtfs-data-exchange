@@ -9,6 +9,7 @@ from django.core.paginator import ObjectPaginator
 import app.basic
 import model
 import utils
+import urllib
 
 
 class CommentPage(app.basic.BasePublicPage):
@@ -82,30 +83,28 @@ class AgencyPage(app.basic.BasePublicPage):
 
 
 class FeedPage(app.basic.BasePublicPage):
-    def get(self, userOrAgency=None, id=None):
-        context = {'userOrAgency':userOrAgency, 'u':id, 'id':id}
-        self.response.headers['Content-Type'] = 'application/atom+xml'
-        if not userOrAgency:
-            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)
-            self.render('atom.xml', context)
-        elif userOrAgency == 'user':
-            import urllib
-            user = urllib.unquote(id)
+    def get(self, user_or_agency=None, slug=None):
+        self.set_header('Content-Type', 'application/atom+xml')
+        base_url = self.request.protocol + "://" + self.request.host
+        if not user_or_agency:
+            messages = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)
+            self.render('atom.xml', user_or_agency=user_or_agency, messages=messages, base_url=base_url)
+        elif user_or_agency == 'user':
+            user = urllib.unquote(slug)
             if '@' in user:
-                u = users.User(user)
+                user = users.User(user)
             else:
-                u = users.User(user+'@gmail.com')
-            context['messages'] = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(90)).filter('user =', u).order('-date').fetch(15)
-            self.render('agency_atom.xml', **context)
-        elif userOrAgency == 'agency':
-            s = utils.lookup_agency_alias(id)
-            if s:
-                return self.redirect('/%s/%s/feed' % (userOrAgency, s))
+                user = users.User(user+'@gmail.com')
+            messages = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(90)).filter('user =', user).order('-date').fetch(15)
+            self.render('agency_atom.xml', user_or_agency=user_or_agency, messages=messages, base_url=base_url, user=str(user), agency=None)
+        elif user_or_agency == 'agency':
+            alias = utils.lookup_agency_alias(slug)
+            if alias:
+                return self.redirect('/%s/%s/feed' % (user_or_agency, alias))
 
-            agency = model.Agency.all().filter('slug =', id).get()
-            context['agency'] = agency
-            context['messages'] = [x.message for x in model.MessageAgency.all().filter('agency =', agency).filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)]
-            self.render('agency_atom.xml', **context)
+            agency = model.Agency.all().filter('slug =', slug).get()
+            messages = [x.message for x in model.MessageAgency.all().filter('agency =', agency).filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)]
+            self.render('agency_atom.xml', agency=agency, user_or_agency=user_or_agency, messages=messages, base_url=base_url, user='')
 
 class UserPage(app.basic.BasePublicPage):
     def get(self, user):
