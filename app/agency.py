@@ -44,7 +44,8 @@ class LatestAgencyFile(app.basic.BasePublicPage):
             raise tornado.web.HTTPError(404)
         message =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1)
         if message:
-            return self.redirect(message[0].message.filelink())
+            production = self.request.host == 'www.gtfs-data-exchange.com'
+            return self.redirect(message[0].message.filelink(production=production))
         raise tornado.web.HTTPError(404)
 
 
