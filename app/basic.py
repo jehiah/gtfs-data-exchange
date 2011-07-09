@@ -43,7 +43,7 @@ class BaseController(tornado.web.RequestHandler):
     def render_string(self, template_name, **kwargs):
         args = dict(
             sign_in_out_url = self.current_user and  users.create_logout_url(self.request.full_url()) or users.create_login_url(self.request.full_url()),
-            sign_in_out_text = self.current_user and 'Sign In' or 'Sign Out',
+            sign_in_out_text = self.current_user and 'Sign Out' or 'Sign In',
             production = self.request.host == 'www.gtfs-data-exchange.com',
             current_user_is_admin = self.current_user and users.is_current_user_admin(),
         )
