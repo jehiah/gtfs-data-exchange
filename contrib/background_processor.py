@@ -227,7 +227,7 @@ Please correct the error and re-try this upload.
         ## post the agency text, md5, user, comments, size
         req = urllib2.Request(self.homebase+'crawl/upload')
         req.add_data({'user': obj.metadata.get('user','jehiah+unkownuser@gmail.com'),
-                      'comments':obj.metadata.get('comments','GTFS File'),
+                      'comments':obj.metadata.get('comments') or 'GTFS File',
                       'sizeoffile':len(obj.data),
                       'md5sum':hashlib.md5(obj.data).hexdigest(),
                       'agencydata':agencydata,
