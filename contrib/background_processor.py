@@ -173,6 +173,7 @@ Please correct the error and re-try this upload.
                 
                 file_contents = open(content_file, "rb").read()
                 metadata = json.loads(open(meta_file, 'rb').read())
+                logging.info('metadata is %s' % metadata)
                 obj = DevObj(file_contents, metadata)
                 yield(key, obj)
             return
@@ -224,7 +225,7 @@ Please correct the error and re-try this upload.
         ## post the agency text, md5, user, comments, size
         req = urllib2.Request(self.homebase+'crawl/upload')
         req.add_data({'user': obj.metadata.get('user','jehiah+unkownuser@gmail.com'),
-                      'comments':obj.metadata.get('comments',''),
+                      'comments':obj.metadata.get('comments','GTFS File'),
                       'sizeoffile':len(obj.data),
                       'md5sum':hashlib.md5(obj.data).hexdigest(),
                       'agencydata':agencydata,
