@@ -180,7 +180,9 @@ Please correct the error and re-try this upload.
                 
         for x in self.conn.list_bucket(self.bucket, {'prefix':'queue/'}).entries:
             logging.info('found %r' % x.key)
-            yield (x.key, self.conn.get(self.bucket, x.key).object)
+            obj = self.conn.get(self.bucket, x.key).object
+            logging.info('metadata is %s' % obj.metadata)
+            yield (x.key, obj)
             logging.info('sleeping %d' % tornado.options.options.upload_sleep_interval)
             time.sleep(tornado.options.options.upload_sleep_interval)
 
