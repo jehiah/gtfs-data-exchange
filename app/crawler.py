@@ -51,11 +51,17 @@ class CrawlerMain(app.basic.BaseController):
     @app.basic.admin_required
     def get(self):
         crawl_urls = model.CrawlBaseUrl.all().order('download_as').fetch(1000)
-        self.render('admin_crawler.html', crawl_urls=crawl_urls)
+
+        new_crawl = model.CrawlBaseUrl()
+        new_crawl.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
+        new_crawl.next_crawl = datetime.datetime.now() + datetime.timedelta(minutes=10)
+        new_crawl.enabled = False
+
+        self.render('admin_crawler.html', crawl_urls=crawl_urls, crawl_url=new_crawl)
     
     def post(self):
-        url = self.get_argument('orig_url')
-        if self.get_argument('link'):
+        url = self.get_argument('orig_url', None)
+        if self.get_argument('link', None):
             # link this to an agency
             agency = utils.get_agency(self.get_argument('link'))
             c = model.CrawlBaseUrl().all().filter('url =', url).get()
@@ -69,6 +75,7 @@ class CrawlerMain(app.basic.BaseController):
             c = model.CrawlBaseUrl()
             c.lastcrawled = datetime.datetime.now()-datetime.timedelta(days=365)
             c.next_crawl = datetime.datetime.now() + datetime.timedelta(minutes=10)
+            c.enabled = True
         c.url = self.get_argument('url')
         c.recurse = int(self.get_argument('recurse'))
         c.download_as = self.get_argument('download_as', 'gtfs-archiver')
@@ -76,7 +83,7 @@ class CrawlerMain(app.basic.BaseController):
         c.post_text = self.get_argument('post_text', '')
         c.crawl_interval = int(self.get_argument('crawl_interval', 24))
         c.put()
-        self.redirect('/crawl')
+        self.redirect('/a/crawler')
 
 class CrawlerEdit(app.basic.BaseController):
     @app.basic.admin_required

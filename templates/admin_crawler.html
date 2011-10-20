@@ -31,4 +31,11 @@
 {% else %}
     <p>No crawler accounts configured.</p>
 {% end %}
+
+<p>Add Crawler: (note, it is preferable to add a crawler from an agency edit page; use this only for new agencies)</p>
+<form action="/a/crawler" method="post">
+{% include "include_crawler_edit.html" %}
+</form>
+
+
 {% end %}
