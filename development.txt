@@ -6,18 +6,18 @@ In order to run locally, you need a copy of [tornado](http://tornadoweb.org/) av
 	mv tmp_clone/tornado tornado
 	rm -rf tmp_clone
 
-# bulk load a copy of production agency data
+# bulk load a copy of production agency data. (note: you probably want to run the appengine with --datastore_path=... so data is not stored persistently in '/tmp'. Also make sure the appengine runtime is running in python 2.5)
 
-To dump the dev datastore startup with --clear-datastore
+To dump the dev datastore startup with --clear-datastore. Note: it's important to run these with python 2.5
 
     cd data
     for kind in Counter Agency MessageAgency AgencyAlias CrawlBaseUrl CrawlSkipUrl Message; do
-        appcfg.py download_data --application=gtfs-data-exchange --kind=$kind --url=http://gtfs-data-exchange.appspot.com/remote_api --filename=$kind
+        python2.5 /usr/local/bin/appcfg.py download_data --application=gtfs-data-exchange --kind=$kind --url=http://gtfs-data-exchange.appspot.com/remote_api --filename=$kind
     done
 
     cd data
     for kind in Counter Agency MessageAgency AgencyAlias CrawlBaseUrl CrawlSkipUrl Message; do
-        appcfg.py upload_data --application=gtfs-data-exchange --kind=$kind --url=http://127.0.0.1:8087/remote_api --filename=$kind
+        python2.5 /usr/local/bin/appcfg.py upload_data --application=dev~gtfs-data-exchange --kind=$kind --url=http://127.0.0.1:8087/remote_api --filename=$kind --email=you@domain.com
     done
 
     rm bulkloader-*
