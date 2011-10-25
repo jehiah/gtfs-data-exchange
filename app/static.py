@@ -12,13 +12,13 @@ class SubmitFeedPage(StaticPage):
     def post(self, template_name):
         ## send an email; render "thank you"
 
-        feed_location = self.get_argument('feed_location')
+        feed_location = self.get_argument('feed_location', '')
         if not feed_location:
             return self.render('generic.html', error='Feed Location is required')
 
-        agency_name = self.get_argument('agency_name')
-        agency_location = self.get_argument('agency_location')
-        contact_info = self.get_argument('contact_info')
+        agency_name = self.get_argument('agency_name', '')
+        agency_location = self.get_argument('agency_location', '')
+        contact_info = self.get_argument('contact_info', '')
         if users.get_current_user():
             user = users.get_current_user().email()
         else:
