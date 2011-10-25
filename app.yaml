@@ -31,7 +31,6 @@ handlers:
   script: gtfs_data_exchange.py
   
 skip_files: |
-     
      ^(.*/)?(
      (contrib/.*)
      (app\.yaml)|
@@ -44,5 +43,7 @@ skip_files: |
      (.*/RCS/.*)|
      (\..*)|
      (.*\.psd)|
-     (.*lineform/.*)
+     (.*lineform/.*)|
+     (\.git.*)|
+     (data/.*)
      )$
