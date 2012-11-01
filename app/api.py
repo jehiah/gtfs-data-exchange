@@ -1,7 +1,11 @@
 import app.basic
 import utils
-import logging
 import model
+
+class IndexPage(app.basic.BasePublicPage):
+    def get(self):
+        self.render("api.html")
+
 
 class APIAgencyPage(app.basic.BaseAPIPage):
     def get(self, slug=None):
@@ -12,11 +16,9 @@ class APIAgencyPage(app.basic.BaseAPIPage):
             return self.api_error(404, 'MISSING_ARG_AGENCY')
             
         s = utils.lookup_agency_alias(slug)
-        logging.warning('new slug %s '% s)
         if s:
             slug = s
         agency = utils.get_agency(slug)
-        logging.warning('agency %s' % agency )
         if not agency:
             return self.api_error(404, 'AGENCY_NOT_FOUND')
         messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1000)

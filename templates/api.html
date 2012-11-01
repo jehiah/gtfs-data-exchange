@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation{% end %}
+
+{% block body %}
+
+<h2>API Documentation</h2>
+
+<h3>http://www.gtfs-data-exchange.com/api/agencies</h3>
+<p>This returns a complete list of all agencies, and their feed sources</p>
+<p>Parameters</p>
+<ul>
+    <li><code>?format=json</code> (default) or <code>?format=csv</code></li>
+</ul>
+<p>Example JSON Output:</p>
+<code>
+<pre>
+{
+  "status_txt": "OK",
+  "status_code": 200,
+  "data": [
+    {
+      "date_last_updated": 1346727786.0,
+      "feed_baseurl": "http://data.cabq.gov/transit/gtfs/google_transit.zip",
+      "name": "ABQ Ride",
+      "area": "Albuquerque",
+      "url": "http://myabqride.com",
+      "country": "United States",
+      "state": "New Mexico",
+      "license_url": "",
+      "dataexchange_url": "http://www.gtfs-data-exchange.com/agency/abq-ride/",
+      "date_added": 1340739867.0,
+      "is_official": true,
+      "dataexchange_id": "abq-ride"
+    },
+    ...
+  ]
+}
+</pre>
+</code>
+
+<p>Example CSV Output:</p>
+<code>
+<pre>
+date_last_updated,feed_baseurl,name,area,url,country,state,license_url,dataexchange_url,date_added,is_official,dataexchange_id
+1346727786.0,http://data.cabq.gov/transit/gtfs/google_transit.zip,ABQ Ride,Albuquerque,http://myabqride.com,United States,New Mexico,,http://www.gtfs-data-exchange.com/agency/abq-ride/,1340739867.0,True,abq-ride
+...
+</pre>
+</code>
+<hr>
+
+<h3>http://www.gtfs-data-exchange.com/api/agency</h3>
+<p>This returns a complete list of all agencies, and their feed sources</p>
+<p>Parameters</p>
+<ul>
+    <li><code>?agency={dataexchange_id}</code></li>
+</ul>
+<p>Example Output:</p>
+<code>
+<pre>
+{
+  "status_txt": "OK",
+  "status_code": 200,
+  "data": {
+    "agency": {
+      "date_last_updated": 1346727786.0,
+      "feed_baseurl": "http://data.cabq.gov/transit/gtfs/google_transit.zip",
+      "name": "ABQ Ride",
+      "area": "Albuquerque",
+      "url": "http://myabqride.com",
+      "country": "United States",
+      "state": "New Mexico",
+      "license_url": "",
+      "dataexchange_url": "http://www.gtfs-data-exchange.com/agency/abq-ride/",
+      "date_added": 1340739867.0,
+      "is_official": true,
+      "dataexchange_id": "abq-ride"
+    },
+    "datafiles": [
+      {
+        "description": "Archived from http://data.cabq.gov/transit/gtfs/google_transit.zip",
+        "md5sum": "f96e9fa37f13789e3d98f09b599e9c4a",
+        "file_url": "http://gtfs.s3.amazonaws.com/abq-ride_20120904_0303.zip",
+        "agencies": [
+          "abq-ride"
+        ],
+        "filename": "abq-ride_20120904_0303.zip",
+        "date_added": 1346727786.0,
+        "uploaded_by_user": "abq-ride-archiver",
+        "size": 3094785
+      },
+      ...
+    ]
+  }
+}
+</pre>
+</code>
+
+{% end %}

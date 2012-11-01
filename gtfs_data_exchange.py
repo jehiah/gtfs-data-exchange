@@ -67,7 +67,7 @@ class Application(tornado.wsgi.WSGIApplication):
             (r"/crawl/upload$", app.crawler.CrawlUpload),
             (r"/crawl/undoLastRun$", app.crawler.CrawlUndoLastRun),
             
-            #TODO(jehiah): add a api docs page
+            (r"^/api/?$", app.api.IndexPage),
             (r"^/api/agency$", app.api.APIAgencyPage),
             (r"^/api/agencies$", app.api.APIAgencies),
         ]
