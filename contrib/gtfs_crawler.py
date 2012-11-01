@@ -162,27 +162,17 @@ class Crawler:
         ## parse the url
         ## run ftpmirror.py
         ## get the zip files and check the md5's
-        pattern = re.compile('ftp://(?P<username>.*):(?P<password>.*)@(?P<hostname>.*?)/(?P<path>.*)')
+        pattern = re.compile('ftp://((?P<username>.*):(?P<password>.*)@)?(?P<hostname>.+?)/(?P<path>.*)')
         m = pattern.match(url)
-        if m:
-            g = m.groupdict()
-            logging.debug(g)
-            username = g['username']
-            password = g['password']
-            hostname = g['hostname']
-            fullpath = g['path']
-        else:
-            pattern = re.compile('ftp://(?P<hostname>.*?)/(?P<path>.*)')
-            m = pattern.match(url)
-            if not m:
-                logging.warning('** no ftp match %r' % url)
-                return
-            g = m.groupdict()
-            logging.debug(g)
-            username = 'anonymous'
-            password = ''
-            hostname = g['hostname']
-            fullpath = g['path']
+        if not m:
+            logging.warning('** no ftp match %r' % url)
+            return
+        g = m.groupdict()
+        logging.debug(g)
+        username = g.get('username', 'anonymous')
+        password = g.get('password', '')
+        hostname = g['hostname']
+        fullpath = g['path']
             
         if fullpath.endswith('.zip'):
             path = '/'.join(fullpath.split('/')[:-1])
@@ -346,7 +336,7 @@ class Crawler:
         
         try:
             url_contents = self.getUrl(url, referer)
-        except DownloadError, e:
+        except DownloadError:
             return
         except:
             logging.exception('** unknown exception on %r' % url)
@@ -434,7 +424,7 @@ class Crawler:
             try:
                 url, settings = self.get_next_crawl_url()
                 self.crawl(url, settings)
-            except StopNow, e:
+            except StopNow:
                 logging.info("got stop command")
                 break
             except:
