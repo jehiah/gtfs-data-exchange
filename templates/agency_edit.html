@@ -33,6 +33,7 @@
         Official Data: 
             <label><input type="radio" name="official" value="1" {% if agency.is_official %}checked{% end %}>Available</label>
             <label><input type="radio" name="official" value="0" {% if not agency.is_official %}checked{% end %}>Not Available</label><br/>
+            <strong>Note: only select 'Available' if entering a 'Feed Location URL'.</strong>
 
 		<input type="submit" name="action.save" value="Save">
 	</form>
