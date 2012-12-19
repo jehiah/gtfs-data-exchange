@@ -3,7 +3,7 @@
     <id>{{base_url}}/feed</id>
     <link href="{% block feedurl %}{{base_url}}/feed{% end %}" type="application/atom+xml" rel="self" />
     <link href="{% block alternateurl %}{{base_url}}/{% end %}" type="text/html" rel="alternative" />
-    <updated>{{messages[0].rfc3339()}}</updated>
+    {% if messages %}<updated>{{messages[0].rfc3339()}}</updated>{% end %}
   {%block extrahead %}{% end %}
 {% for msg in messages %}
   <entry>
