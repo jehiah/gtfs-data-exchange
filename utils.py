@@ -28,7 +28,7 @@ def get_recent_messages():
     recent_messages = memcache.get('Message.recent')
     if recent_messages is None:
         # .filter('date >',datetime.datetime.now()-datetime.timedelta(30))
-        recent_messages = model.Message.all().order('-date').fetch(7)
+        recent_messages = model.Message.all().order('-date').fetch(15)
         memcache.set('Message.recent',recent_messages,60*60*48) # 1 day
     return recent_messages
 
@@ -109,10 +109,10 @@ def get_agency(slug):
     key = 'Agency.slug.%s' % slug
     agency = memcache.get(key)
     if not agency:
-        agency = model.Agency.all().filter('slug =',slug).get()
+        agency = model.Agency.all().filter('slug =', slug).get()
         if not agency:
             return
-        memcache.set(key,agency)
+        memcache.set(key, agency)
     return agency
 
 

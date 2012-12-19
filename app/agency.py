@@ -88,7 +88,7 @@ class FeedPage(app.basic.BasePublicPage):
         self.set_header('Content-Type', 'application/atom+xml')
         base_url = self.request.protocol + "://" + self.request.host
         if not user_or_agency:
-            messages = model.Message.all().filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)
+            messages = utils.get_recent_messages()
             self.render('atom.xml', user_or_agency=user_or_agency, messages=messages, base_url=base_url)
         elif user_or_agency == 'user':
             user = urllib.unquote(slug)
@@ -102,8 +102,8 @@ class FeedPage(app.basic.BasePublicPage):
             alias = utils.lookup_agency_alias(slug)
             if alias:
                 return self.redirect('/%s/%s/feed' % (user_or_agency, alias))
-
-            agency = model.Agency.all().filter('slug =', slug).get()
+            
+            agency = utils.get_agency(slug)
             messages = [x.message for x in model.MessageAgency.all().filter('agency =', agency).filter('date >', datetime.datetime.now()-datetime.timedelta(90)).order('-date').fetch(15)]
             self.render('agency_atom.xml', agency=agency, user_or_agency=user_or_agency, messages=messages, base_url=base_url, user='')
 

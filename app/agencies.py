@@ -4,7 +4,7 @@ import utils
 class MainPage(app.basic.BasePublicPage):
     def get(self):
         recent_agencies = utils.get_recent_agencies()
-        recent_messages = utils.get_recent_messages()
+        recent_messages = utils.get_recent_messages()[:7]
         agency_count = utils.get_agency_count()
         
         self.render('index.html', recent_messages=recent_messages,
