@@ -9,10 +9,10 @@
   <entry>
 	<link rel="alternate" href="{{base_url}}/meta/{{msg.key().id()}}" type="text/html"/>
 	<author>
-	  <name>{{msg.user}}</name>
+	  <name>{{escape(str(msg.user) or '')}}</name>
 	</author>
       <id>{{base_url}}/meta/{{msg.key().id()}}</id>
-      <title type="text">{% if msg.hasFile %}Upload{%else%}Comment{%end%} : {% for i, a in enumerate(msg.agencies) %}{{a.name}}{% if i != len(msg.agencies) %},{% end %} {% end %}by {{msg.user}}</title>
+      <title type="text">{% if msg.hasFile %}Upload{%else%}Comment{%end%} : {% for i, a in enumerate(msg.agencies) %}{{escape(a.name)}}{% if i != len(msg.agencies) %},{% end %} {% end %}by {{escape(str(msg.user) or '')}}</title>
       <content type="html"><![CDATA[ 
 {{markdown(msg.content)}}
 
