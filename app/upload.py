@@ -1,4 +1,3 @@
-from google.appengine.api import users
 from google.appengine.api import memcache
 
 import datetime
@@ -132,8 +131,11 @@ class UploadFile(app.basic.BasePublicPage):
     @app.basic.login_required
     def get(self):
         if not self.settings['debug']:
-            policy="ICAgIHsiZXhwaXJhdGlvbiI6ICIyMDEzLTAxLTAxVDAwOjAwOjAwWiIsCiAgICAgICJjb25kaXRpb25zIjogWyAKICAgICAgICB7ImJ1Y2tldCI6ICJndGZzIn0sIAogICAgICAgIFsic3RhcnRzLXdpdGgiLCAiJGtleSIsICJxdWV1ZS8iXSwKICAgICAgICB7ImFjbCI6ICJwcml2YXRlIn0sCiAgICAgICAgeyJzdWNjZXNzX2FjdGlvbl9yZWRpcmVjdCI6ICJodHRwOi8vd3d3Lmd0ZnMtZGF0YS1leGNoYW5nZS5jb20vcXVldWUifSwKICAgICAgICBbImVxIiwgIiRDb250ZW50LVR5cGUiLCAiYXBwbGljYXRpb24vemlwIl0sCiAgICAgICAgWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsIDAsIDMxNDU3MjgwXSwKICAgICAgICBbInN0YXJ0cy13aXRoIiwiJHgtYW16LW1ldGEtdXNlciIsIiJdLAogICAgICAgIFsic3RhcnRzLXdpdGgiLCIkeC1hbXotbWV0YS1jb21tZW50cyIsIiJdCiAgICAgICAgXQogICAgfQ=="
-            signature = "4SG+ix7HXV/Kp40HEYEg4t1uboI="
+            # raw_policy = json.loads(base64.b64decode(policy))
+            # policy = base64.b64encode(json.dumps(raw_policy))
+            # base64.b64encode(hmac.new(aws_secret_key, policy, hashlib.sha1).digest())
+            policy = "eyJjb25kaXRpb25zIjogW3siYnVja2V0IjogImd0ZnMifSwgWyJzdGFydHMtd2l0aCIsICIka2V5IiwgInF1ZXVlLyJdLCB7ImFjbCI6ICJwcml2YXRlIn0sIHsic3VjY2Vzc19hY3Rpb25fcmVkaXJlY3QiOiAiaHR0cDovL3d3dy5ndGZzLWRhdGEtZXhjaGFuZ2UuY29tL3F1ZXVlIn0sIFsiZXEiLCAiJENvbnRlbnQtVHlwZSIsICJhcHBsaWNhdGlvbi96aXAiXSwgWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsIDAsIDMxNDU3MjgwXSwgWyJzdGFydHMtd2l0aCIsICIkeC1hbXotbWV0YS11c2VyIiwgIiJdLCBbInN0YXJ0cy13aXRoIiwgIiR4LWFtei1tZXRhLWNvbW1lbnRzIiwgIiJdXSwgImV4cGlyYXRpb24iOiAiMjAxNC0wMS0wMVQwMDowMDowMFoifQ=="
+            signature = "hZh34LMzAVmZoNqrHceCDAFCloo="
         else:
             policy = "CnsiZXhwaXJhdGlvbiI6ICIyMDExLTAxLTAxVDAwOjAwOjAwWiIsCiAgImNvbmRpdGlvbnMiOiBbIAogICAgeyJidWNrZXQiOiAiZ3Rmcy1kZXZlbCJ9LCAKICAgIFsic3RhcnRzLXdpdGgiLCAiJGtleSIsICJxdWV1ZS8iXSwKICAgIHsiYWNsIjogInByaXZhdGUifSwKICAgIHsic3VjY2Vzc19hY3Rpb25fcmVkaXJlY3QiOiAiaHR0cDovL2xvY2FsaG9zdDo4MDgxL3F1ZXVlIn0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRDb250ZW50LVR5cGUiLCAiIl0sCiAgICBbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwgMCwgMzE0NTcyODBdLAogICAgWyJzdGFydHMtd2l0aCIsIiR4LWFtei1tZXRhLXVzZXIiLCIiXSwKICAgIFsic3RhcnRzLXdpdGgiLCIkeC1hbXotbWV0YS1jb21tZW50cyIsIiJdCiAgICBdCn0K"
             signature="C2wGDUj7kyN1bJ+jhLc662iZsXc="
@@ -141,39 +143,7 @@ class UploadFile(app.basic.BasePublicPage):
         nextkey = str(datetime.datetime.now())+'-'+randstring+'.zip'
         self.render('upload.html', policy=policy, signature=signature, nextkey=nextkey.replace(' ', '-'))
     
-    # @app.basic.login_required
-    # def post(self):
-    #     if 'upload_file' not in self.request.POST:
-    #         self.error(400)
-    #         self.finish("file not specified!")
-    #         return
-    #     if (self.get_argument('upload_file', None) is None or
-    #        not self.get_argument('upload_file', None).filename):
-    #         self.error(400)
-    #         self.finish("file not specified!")
-    #         return
-    #     
-    #     name = self.get_argument('upload_file').filename
-    #     logging.info('upload file name ' + str(name))
-    #     
-    #     filedata = self.get_argument('upload_file').file.read()
-    #     contentType = self.get_argument('upload_file').type ## check that it's zip!
-    #     
-    #     try:
-    #         redirect_url = uploadfile(username=users.get_current_user(), 
-    #                                 filename=name, 
-    #                                 filedata=filedata, 
-    #                                 contentType=contentType, 
-    #                                 comments=self.get_argument('comments', ''), 
-    #                                 bounds=self.get_argument('bounds', ''))
-    #     except UploadError, e:
-    #         self.error(400)
-    #         return self.finish(e.msg)
-    #     
-    #     self.redirect(redirect_url)
-
 class QueuePage(app.basic.BasePublicPage):
-    #@app.basic.login_required
     def get(self):
         if not self.get_argument('key', '') or not self.get_argument('bucket', '').startswith('gtfs'):
             return self.redirect('/upload')
