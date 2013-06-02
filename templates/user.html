@@ -16,14 +16,14 @@
 <h2>Comments and Uploads by {{escape(u.nickname())}}</h2>
 
 <br clear="right"/>
-{% if paginator.pages != 1 %}
+{% if paginator.num_pages != 1 %}
 <div class="pagination">
     <span class="page-links">
         {% if previous %}
             <a href="?page={{ previous_page_number }}">&laquo; previous</a>
         {% end %}
         <span class="current">
-             Page {{ page }} of {{ paginator.pages }}
+             Page {{ page }} of {{ paginator.num_pages }}
         </span>
         {% if next %}
             <a href="?page={{ next_page_number }}">next &raquo;</a>
@@ -49,14 +49,14 @@
 
 {% end %}
 
-{% if paginator.pages != 1 %}
+{% if paginator.num_pages != 1 %}
 <div class="pagination">
     <span class="page-links">
         {% if previous %}
             <a href="?page={{ previous_page_number }}">&laquo; previous</a>
         {% end %}
         <span class="current">
-             Page {{ page }} of {{ paginator.pages }}
+             Page {{ page }} of {{ paginator.num_pages }}
         </span>
         {% if next %}
             <a href="?page={{ next_page_number }}">next &raquo;</a>

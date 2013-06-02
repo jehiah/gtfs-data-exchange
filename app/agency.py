@@ -4,7 +4,7 @@ import tornado.web
 
 import logging
 import datetime
-from django.core.paginator import ObjectPaginator
+from django.core.paginator import Paginator
 
 import app.basic
 import model
@@ -60,7 +60,7 @@ class AgencyPage(app.basic.BasePublicPage):
             raise tornado.web.HTTPError(404)
         messages =model.MessageAgency.all().filter('agency', agency).order('-date').fetch(1000)
 
-        paginator = ObjectPaginator(messages, 10, 1)
+        paginator = Paginator(messages, 10, 1)
         try:
             page = int(self.get_argument('page', '1'))
         except ValueError:
@@ -69,17 +69,17 @@ class AgencyPage(app.basic.BasePublicPage):
             page = 1
 
         try:
-            records = paginator.get_page(page-1)
+            pageObj = paginator.page(page)
         except:
-            records = paginator.get_page(0)
+            pageObj = paginator.page(1)
             page = 1
 
-        self.render('agency.html', agency=agency, messages=records, 
+        self.render('agency.html', agency=agency, messages=pageObj.object_list, 
                     paginator=paginator,
-                    next=paginator.has_next_page(page-1),
-                    previous=paginator.has_previous_page(page-1),
-                    previous_page_number=page-1,
-                    next_page_number=page+1,
+                    next=pageObj.has_next(),
+                    previous=pageObj.has_previous(),
+                    previous_page_number=pageObj.previous_page_number(),
+                    next_page_number=pageObj.next_page_number(),
                     page=page)
 
 
@@ -122,16 +122,20 @@ class UserPage(app.basic.BasePublicPage):
         if not messages and users.get_current_user().email() != u.email():
             raise tornado.web.HTTPError(404)
 
-        paginator = ObjectPaginator(messages, 10, 1)
+        paginator = Paginator(messages, 10, 1)
         try:
             page = int(self.get_argument('page', '1'))
         except ValueError:
             page = 1
 
         try:
-            records = paginator.get_page(page-1)
+            pageObj = paginator.page(page)
         except:
-            records = paginator.get_page(0)
+            pageObj = paginator.page(1)
             page = 1
-        self.render('user.html', **{'u':u, 'messages':records, 'paginator':paginator,
-        "next" : paginator.has_next_page(page-1), 'previous':paginator.has_previous_page(page-1), 'previous_page_number':page-1, 'next_page_number':page+1, "page" : page})
+        self.render('user.html', **{'u':u, 'messages':pageObj.object_list, 'paginator':paginator,
+                    "next":pageObj.has_next(),
+                    "previous":pageObj.has_previous(),
+                    "previous_page_number":pageObj.previous_page_number(),
+                    "next_page_number":pageObj.next_page_number(),
+                    "page" : page})

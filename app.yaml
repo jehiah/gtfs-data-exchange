@@ -1,7 +1,12 @@
 application: gtfs-data-exchange
-version: 6
-runtime: python
+version: 7
+runtime: python27
 api_version: 1
+threadsafe: false
+
+libraries:
+- name: django
+  version: "1.4"
 
 handlers:
 - url: /robots.txt
