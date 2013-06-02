@@ -20,11 +20,6 @@ indexes:
   - name: enabled
   - name: next_crawl
 
-- kind: CrawlBaseUrl
-  properties:
-  - name: lastcrawled
-    direction: desc
-
 - kind: CrawlUrl
   properties:
   - name: url
@@ -34,11 +29,6 @@ indexes:
   properties:
   - name: url
   - name: lastseen
-    direction: desc
-
-- kind: Message
-  properties:
-  - name: date
     direction: desc
 
 - kind: Message
