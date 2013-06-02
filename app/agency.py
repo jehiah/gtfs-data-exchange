@@ -35,6 +35,9 @@ class CommentPage(app.basic.BasePublicPage):
         self.render('comment.html', msg=obj)
 
 class LatestAgencyFile(app.basic.BasePublicPage):
+    def head(self, slug):
+        raise tornado.web.HTTPError(405)
+    
     def get(self, slug):
         s = utils.lookup_agency_alias(slug)
         if s:
