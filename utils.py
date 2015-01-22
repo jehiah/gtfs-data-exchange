@@ -7,7 +7,7 @@ import StringIO
 def get_all_agencies():
     agencies = memcache.get('Agency.all')
     if not agencies:
-        agencies = model.Agency.all().order('name').fetch(700)
+        agencies = model.Agency.all().order('name').fetch(1000)
         memcache.set('Agency.all',agencies)
     return agencies
 
