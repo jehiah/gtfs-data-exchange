@@ -19,7 +19,7 @@
 
 {% for msg in recent_messages %}
 <div class="message">
-<p class="meta"><a href="/meta/{{msg.key().id()}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a>  <small>{{timesince(msg.date)}} ago</small>
+<p class="meta"><a href="/meta/{{msg.key().id()}}" class="permalink" title="permalink">#</a> {% if msg.hasFile %}Upload{% else %} Comment {% end %} By <a href="/user/{{msg.user}}/">{{msg.user}}</a>  <small>{{timesince(msg.date)}}</small>
 		<br/>pertains to
 		{% for a in msg.agencies %}
 			<a href="{{escape(a.link)}}">{{escape(a.name)}}</a>
