@@ -14,7 +14,7 @@ def run(bucket, url, aws_secret):
     # }
 
     policy_document = """
-    {"expiration": "2013-01-01T00:00:00Z",
+    {"expiration": "2016-07-01T00:00:00Z",
       "conditions": [ 
         {"bucket": "%(bucket)s"}, 
         ["starts-with", "$key", "queue/"],

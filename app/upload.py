@@ -136,8 +136,8 @@ class UploadFile(app.basic.BasePublicPage):
             # raw_policy['expiration'] = ....
             # policy = base64.b64encode(json.dumps(raw_policy))
             # signature = base64.b64encode(hmac.new(aws_secret_key, policy, hashlib.sha1).digest())
-            policy = 'eyJjb25kaXRpb25zIjogW3siYnVja2V0IjogImd0ZnMifSwgWyJzdGFydHMtd2l0aCIsICIka2V5IiwgInF1ZXVlLyJdLCB7ImFjbCI6ICJwcml2YXRlIn0sIHsic3VjY2Vzc19hY3Rpb25fcmVkaXJlY3QiOiAiaHR0cDovL3d3dy5ndGZzLWRhdGEtZXhjaGFuZ2UuY29tL3F1ZXVlIn0sIFsiZXEiLCAiJENvbnRlbnQtVHlwZSIsICJhcHBsaWNhdGlvbi96aXAiXSwgWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsIDAsIDMxNDU3MjgwXSwgWyJzdGFydHMtd2l0aCIsICIkeC1hbXotbWV0YS11c2VyIiwgIiJdLCBbInN0YXJ0cy13aXRoIiwgIiR4LWFtei1tZXRhLWNvbW1lbnRzIiwgIiJdXSwgImV4cGlyYXRpb24iOiAiMjAxNS0wNi0wMVQwMDowMDowMFoifQ=='
-            signature = 'bVUS5arX+Zym5DAXSIew/j50eVg='
+            policy = "eyJleHBpcmF0aW9uIjogIjIwMTYtMDctMDFUMDA6MDA6MDBaIiwgICAgICAiY29uZGl0aW9ucyI6IFsgICAgICAgICB7ImJ1Y2tldCI6ICJndGZzIn0sICAgICAgICAgWyJzdGFydHMtd2l0aCIsICIka2V5IiwgInF1ZXVlLyJdLCAgICAgICAgeyJhY2wiOiAicHJpdmF0ZSJ9LCAgICAgICAgeyJzdWNjZXNzX2FjdGlvbl9yZWRpcmVjdCI6ICJodHRwOi8vd3d3Lmd0ZnMtZGF0YS1leGNoYW5nZS5jb20vcXVldWUifSwgICAgICAgIFsiZXEiLCAiJENvbnRlbnQtVHlwZSIsICJhcHBsaWNhdGlvbi96aXAiXSwgICAgICAgIFsiY29udGVudC1sZW5ndGgtcmFuZ2UiLCAwLCAzMTQ1NzI4MF0sICAgICAgICBbInN0YXJ0cy13aXRoIiwiJHgtYW16LW1ldGEtdXNlciIsIiJdLCAgICAgICAgWyJzdGFydHMtd2l0aCIsIiR4LWFtei1tZXRhLWNvbW1lbnRzIiwiIl0gICAgICAgIF0gICAgfQ=="
+            signature = "ZMNAG4S7g8m/wRwRJrww+vD/yT0="
         else:
             policy = "CnsiZXhwaXJhdGlvbiI6ICIyMDExLTAxLTAxVDAwOjAwOjAwWiIsCiAgImNvbmRpdGlvbnMiOiBbIAogICAgeyJidWNrZXQiOiAiZ3Rmcy1kZXZlbCJ9LCAKICAgIFsic3RhcnRzLXdpdGgiLCAiJGtleSIsICJxdWV1ZS8iXSwKICAgIHsiYWNsIjogInByaXZhdGUifSwKICAgIHsic3VjY2Vzc19hY3Rpb25fcmVkaXJlY3QiOiAiaHR0cDovL2xvY2FsaG9zdDo4MDgxL3F1ZXVlIn0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRDb250ZW50LVR5cGUiLCAiIl0sCiAgICBbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwgMCwgMzE0NTcyODBdLAogICAgWyJzdGFydHMtd2l0aCIsIiR4LWFtei1tZXRhLXVzZXIiLCIiXSwKICAgIFsic3RhcnRzLXdpdGgiLCIkeC1hbXotbWV0YS1jb21tZW50cyIsIiJdCiAgICBdCn0K"
             signature="C2wGDUj7kyN1bJ+jhLc662iZsXc="
