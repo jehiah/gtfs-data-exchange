@@ -4,7 +4,13 @@ a:link,a:visited{color:#006619;text-decoration:underline;}
 
 #container{width:800px;margin:0 auto 10px auto;background-color:#c0c0c0;border:0px solid #666;border-width:0px 3px 3px 2px;}
 #header{text-align:center;margin:0 0 0 0;padding-bottom:20px;border-bottom:10px solid #fff;}
+#header .shutdown {
+  background-color:#fffff0;
+  padding:20px 25px;
+  margin-top:20px;
+}
 #header h1{margin:0;}
+#header p,ul,li{text-align:left; font-size:10pt;}
 #dashboard a{padding:2px 3px;}
 #body{padding:10px 15px;border-top:10px solid #fff;min-height:400px;color:#333;}
 #rightsidebar{float:right;width:150px;padding:10px;border:10px solid #fff;background-color:#00a128;color:#eee;text-align:justify;margin-left:10px;}

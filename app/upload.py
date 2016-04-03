@@ -2,9 +2,7 @@ from google.appengine.api import memcache
 
 import datetime
 import logging
-import random
 import urlparse
-import string
 
 import tornado.web
 import app.basic
@@ -128,22 +126,8 @@ def uploadfile(username, agencydata, comments, md5sum, sizeoffile, bounds):
     return new_message.filename
 
 class UploadFile(app.basic.BasePublicPage):
-    @app.basic.login_required
     def get(self):
-        if not self.settings['debug']:
-            # how to re-generate the policy
-            # raw_policy = json.loads(base64.b64decode(policy))
-            # raw_policy['expiration'] = ....
-            # policy = base64.b64encode(json.dumps(raw_policy))
-            # signature = base64.b64encode(hmac.new(aws_secret_key, policy, hashlib.sha1).digest())
-            policy = "eyJleHBpcmF0aW9uIjogIjIwMTYtMDctMDFUMDA6MDA6MDBaIiwgICAgICAiY29uZGl0aW9ucyI6IFsgICAgICAgICB7ImJ1Y2tldCI6ICJndGZzIn0sICAgICAgICAgWyJzdGFydHMtd2l0aCIsICIka2V5IiwgInF1ZXVlLyJdLCAgICAgICAgeyJhY2wiOiAicHJpdmF0ZSJ9LCAgICAgICAgeyJzdWNjZXNzX2FjdGlvbl9yZWRpcmVjdCI6ICJodHRwOi8vd3d3Lmd0ZnMtZGF0YS1leGNoYW5nZS5jb20vcXVldWUifSwgICAgICAgIFsiZXEiLCAiJENvbnRlbnQtVHlwZSIsICJhcHBsaWNhdGlvbi96aXAiXSwgICAgICAgIFsiY29udGVudC1sZW5ndGgtcmFuZ2UiLCAwLCAzMTQ1NzI4MF0sICAgICAgICBbInN0YXJ0cy13aXRoIiwiJHgtYW16LW1ldGEtdXNlciIsIiJdLCAgICAgICAgWyJzdGFydHMtd2l0aCIsIiR4LWFtei1tZXRhLWNvbW1lbnRzIiwiIl0gICAgICAgIF0gICAgfQ=="
-            signature = "ZMNAG4S7g8m/wRwRJrww+vD/yT0="
-        else:
-            policy = "CnsiZXhwaXJhdGlvbiI6ICIyMDExLTAxLTAxVDAwOjAwOjAwWiIsCiAgImNvbmRpdGlvbnMiOiBbIAogICAgeyJidWNrZXQiOiAiZ3Rmcy1kZXZlbCJ9LCAKICAgIFsic3RhcnRzLXdpdGgiLCAiJGtleSIsICJxdWV1ZS8iXSwKICAgIHsiYWNsIjogInByaXZhdGUifSwKICAgIHsic3VjY2Vzc19hY3Rpb25fcmVkaXJlY3QiOiAiaHR0cDovL2xvY2FsaG9zdDo4MDgxL3F1ZXVlIn0sCiAgICBbInN0YXJ0cy13aXRoIiwgIiRDb250ZW50LVR5cGUiLCAiIl0sCiAgICBbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwgMCwgMzE0NTcyODBdLAogICAgWyJzdGFydHMtd2l0aCIsIiR4LWFtei1tZXRhLXVzZXIiLCIiXSwKICAgIFsic3RhcnRzLXdpdGgiLCIkeC1hbXotbWV0YS1jb21tZW50cyIsIiJdCiAgICBdCn0K"
-            signature="C2wGDUj7kyN1bJ+jhLc662iZsXc="
-        randstring = ''.join([random.choice(string.letters+string.digits) for x in range(20)])
-        nextkey = str(datetime.datetime.now())+'-'+randstring+'.zip'
-        self.render('upload.html', policy=policy, signature=signature, nextkey=nextkey.replace(' ', '-'))
+        self.redirect("https://transit.land/feed-registry/")
     
 class QueuePage(app.basic.BasePublicPage):
     def get(self):
